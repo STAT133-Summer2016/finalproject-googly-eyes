@@ -7,8 +7,45 @@ library(stringr)
 library(scales)
 ```
 ```{r}
-page = "https://www.rottentomatoes.com/m/fifty_shades_of_grey/" %>% read_html()
+
+col_names = c("Name",
+              "Time", 
+              "Box", 
+              "Tomato_meter", 
+              "Critics_rating", 
+              "Audience_rating", 
+              "Reviews_count", 
+              "Fresh",
+              "Rotten",
+              "User_rating",
+              "Classification",
+              "Action_&_Adventure",
+              "Animation",
+              "Comedy",
+              "Documentary",
+              "Drama",
+              "Horror",
+              "Kids_&_Family",
+              "Mystery_&_Suspense",
+              "Science_Fiction_&_Fantasy",
+              "Special_Interest",
+              "Television",
+              "Directed_by",
+              "Cast",
+              "Length"
+              )
+
+
+
+# links from henry
+for (link in links){
+  #fetch
+  #rbind
+
+}
+page = "https://www.rottentomatoes.com/m/zootopia/" %>% read_html()
 name = str_match(page, "/([a-z]*)/$")[2]
+
 tomato_meter = page %>% 
   xml_find_all("//span[@class='meter-value superPageFontColor']") %>% 
   .[1] %>% 
@@ -50,27 +87,27 @@ user_ratings = page %>%
   as.numeric()
 
 rating_1 = page %>% 
-  xml_find_all("//div[@class='col col-sm-19 col-xs-14']") %>%
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']") %>%
   .[1] %>%
   str_match("PG-13")
 
 rating_2 = page %>% 
-  xml_find_all("//div[@class='col col-sm-19 col-xs-14']") %>%
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']") %>%
   .[1] %>%
   str_match("PG")
 
 rating_3 = page %>% 
-  xml_find_all("//div[@class='col col-sm-19 col-xs-14']") %>%
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']") %>%
   .[1] %>%
   str_match("G")
 
 rating_4 = page %>% 
-  xml_find_all("//div[@class='col col-sm-19 col-xs-14']") %>%
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']") %>%
   .[1] %>%
   str_match("R")
 
 rating_5 = page %>% 
-  xml_find_all("//div[@class='col col-sm-19 col-xs-14']") %>%
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']") %>%
   .[1] %>%
   str_match("NC17")
 
@@ -86,7 +123,125 @@ if (!is.na(rating_1)){
   rating = "NC17"
 }
 
+genre_vector = page %>% 
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']/link/span") %>% 
+  xml_text()
 
+if ("Action & Adventure" %in% genre_vector){
+  action = TRUE
+}
+
+if ("Animation" %in% genre_vector){
+  animation = TRUE
+}
+
+if ("Comedy" %in% genre_vector){
+  comedy = T
+}
+
+if ("Documentary" %in% genre_vector){
+  documentary = T
+}
+
+if ("Drama" %in% genre_vector){
+  drama = T
+}
+
+if ("Horror" %in% genre_vector){
+  horror = T
+}
+
+if ("Kids & Family" %in% genre_vector){
+  kids = T
+}
+
+if ("Mystery & Suspense" %in% genre_vector){
+  mystery = T
+}
+
+if ("Science Fiction & Fantasy" %in% genre_vector){
+  sci_fi = T
+}
+
+if ("Special Interest" %in% genre_vector){
+  special_interest = T
+}
+
+if ("Television" %in% genre_vector){
+  television = T
+}
+
+directed_by = page %>% 
+  xml_find_all("//div[@class='col-sm-19 col-xs-14 text-left']") %>% 
+  .[1] %>% 
+  xml_text() %>% 
+  str_match_all("[a-zA-Z]+ [a-zA-Z]+") %>% 
+  .[[1]] %>% 
+  .[,1]
+
+written_by = page %>% 
+  xml_find_all("//div[@class='col-sm-19 col-xs-14 text-left']") %>% 
+  .[2] %>% 
+  xml_text() %>% 
+  str_match_all("[a-zA-Z]+ [a-zA-Z]+") %>% 
+  .[[1]] %>% 
+  .[,1]
+
+in_theaters = page %>% 
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']/time") %>% 
+  .[1] %>% 
+  xml_text() %>% 
+  mdy()
+
+has_box = page %>% 
+  xml_find_all("//div[@class='col col-sm-5 col-xs-10 clearfix subtle bold']") %>% 
+  str_detect("Box Office") %>% 
+  any()
+
+if (has_box){
+  box = page %>% 
+    xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']") %>%
+    xml_text() %>%
+    .[4] %>% 
+    str_match("[0-9]+") %>% 
+    as.numeric()
+}else{
+  box = NA
+}
+
+runtime = page %>% 
+    xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']/time") %>% 
+    .[2] %>% 
+    xml_text() %>% 
+    str_match("[0-9]+") %>% 
+    as.numeric()
+
+cast = page %>% 
+  xml_find_all("//div[@class='cast-item media inlineBlock ']/a") %>% 
+  str_match("/celebrity/[a-zA-Z_]+") %>% 
+  str_replace("/celebrity/", "") %>% 
+  str_replace("_", " ")
+
+studio = page %>% 
+    xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']/a") %>% 
+    xml_text()
+
+
+# <div class="col col-sm-19 col-xs-14 text-left">$34284</div>
+
+
+
+
+  
+
+# <div class="col col-sm-19 col-xs-14 text-left">
+#                 <genre:link genreid="1">
+#                         <span>Action &amp; Adventure</span>
+#                     </genre:link>, <genre:link genreid="2">
+#                         <span>Animation</span>
+#                     </genre:link>, <genre:link genreid="11">
+#                         <span>Kids &amp; Family</span>
+#                     </genre:link></div>
 
 # user
 # 
