@@ -1,0 +1,103 @@
+```{r}
+library(rvest)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(scales)
+```
+```{r}
+page = "https://www.rottentomatoes.com/m/fifty_shades_of_grey/" %>% read_html()
+name = str_match(page, "/([a-z]*)/$")[2]
+tomato_meter = page %>% 
+  xml_find_all("//span[@class='meter-value superPageFontColor']") %>% 
+  .[1] %>% 
+  str_match("[0-9]+") %>% 
+  as.numeric()
+
+mNumbers =  page %>% 
+  xml_find_all("//div[@class='superPageFontColor']")
+
+numbers = mNumbers %>% 
+  str_match("[0-9]+")
+
+average_rating_by_critics = mNumbers %>%
+  str_match("[0-9].[0-9]/[0-9]{2}") %>% 
+  .[1,1]
+
+reviews_counted = numbers %>% 
+  .[2,1] %>% 
+  as.numeric()
+
+fresh = numbers %>% 
+  .[3,1] %>% 
+  as.numeric()
+
+rotten = numbers %>% 
+  .[4,1] %>% 
+  as.numeric()
+
+average_rating_by_audience = page %>% 
+  xml_find_all("//div[@class='audience-info hidden-xs superPageFontColor']/div") %>% 
+  str_match("[0-9].[0-9]/5") %>% 
+  .[1,1]
+
+user_ratings = page %>% 
+  xml_find_all("//div[@class='audience-info hidden-xs superPageFontColor']/div") %>%
+  str_match("[0-9]*,?[0-9]+") %>% 
+  .[2,1] %>% 
+  str_replace(",", "") %>% 
+  as.numeric()
+
+rating_1 = page %>% 
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14']") %>%
+  .[1] %>%
+  str_match("PG-13")
+
+rating_2 = page %>% 
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14']") %>%
+  .[1] %>%
+  str_match("PG")
+
+rating_3 = page %>% 
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14']") %>%
+  .[1] %>%
+  str_match("G")
+
+rating_4 = page %>% 
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14']") %>%
+  .[1] %>%
+  str_match("R")
+
+rating_5 = page %>% 
+  xml_find_all("//div[@class='col col-sm-19 col-xs-14']") %>%
+  .[1] %>%
+  str_match("NC17")
+
+if (!is.na(rating_1)){
+  rating = "PG-13"
+}else if(!is.na(rating_2)){
+  rating = "PG"
+}else if (!is.na(rating_3)){
+  rating = "G"
+}else if (!is.na(rating_4)){
+  rating = "R"
+}else if (!is.na(rating_5)){
+  rating = "NC17"
+}
+
+
+
+# user
+# 
+# <div class="audience-info hidden-xs superPageFontColor">
+#     <div>
+#             <span class="subtle superPageFontColor">Average Rating:</span>
+#             3.8/5
+#                 </div>
+#     <div>
+#         <span class="subtle superPageFontColor">User Ratings:</span>
+#         35,056</div>
+# </div>
+  
+```
