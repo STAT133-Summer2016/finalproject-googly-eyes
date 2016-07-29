@@ -9,7 +9,8 @@ library(scales)
 ```
 ```{r}
 
-col_names = c("Time", 
+col_names = c("Title",
+              "Time", 
               "Box", 
               "Tomato_meter", 
               "Audience_Reviews",
@@ -20,17 +21,26 @@ col_names = c("Time",
               "Rotten",
               "User_rating",
               "Classification",
-              "Action_&_Adventure",
+              "Action & Adventure",
               "Animation",
+              "Art House & International",
+              "Classics",
               "Comedy",
+              "Cult Movies",
               "Documentary",
               "Drama",
+              "Faith & Spirituality",
+              "Gay & Lesbian",
               "Horror",
-              "Kids_&_Family",
-              "Mystery_&_Suspense",
-              "Science_Fiction_&_Fantasy",
-              "Special_Interest",
+              "Kids & Family",
+              "Musical & Performing Arts",
+              "Mystery & Suspense",
+              "Romance", 
+              "Science Fiction & Fantasy",
+              "Special Interest",
+              "Sports & Fitness",
               "Television",
+              "Western",
               "Directed_by",
               "Written_by",
               "Cast",
@@ -38,28 +48,40 @@ col_names = c("Time",
 
 move_genres = c("Action & Adventure",
                 "Animation",
+                "Art House & International",
+                "Classics",
                 "Comedy",
+                "Cult Movies",
                 "Documentary",
                 "Drama",
+                "Faith & Spirituality",
+                "Gay & Lesbian",
                 "Horror",
                 "Kids & Family",
+                "Musical & Performing Arts",
                 "Mystery & Suspense",
+                "Romance", 
                 "Science Fiction & Fantasy",
                 "Special Interest",
-                "Television"
+                "Sports & Fitness",
+                "Television",
+                "Western"
                 )
 
 movies = read_csv("top100_movies.csv")
-movies_df = data.frame()
+movies_matrix = matrix(nrow = 0, ncol = 35)
 
 # Subsetting the movies for testing
-start = 920
+start = 0
 end = nrow(movies)
 i = start
 movies = movies[(i+1):end,]
 
+all_genres = c()
+
 
 for (suffix in movies$html_suffix){
+  new_movie = c()
   
   # Print progress
   i = i + 1
@@ -71,13 +93,11 @@ for (suffix in movies$html_suffix){
   tomato_meter = page %>% 
     xml_find_all("//span[@class='meter-value superPageFontColor']") %>% 
     .[1] %>% 
-    str_match("[0-9]+") %>% 
-    as.numeric()
+    str_match("[0-9]+")
   
   audience_reviews = page %>% 
     xml_find_all("//span[@class='superPageFontColor']") %>% 
-    str_match("[0-9]+") %>% 
-    as.numeric()
+    str_match("[0-9]+")
   
   mNumbers =  page %>% 
     xml_find_all("//div[@class='superPageFontColor']")
@@ -90,16 +110,13 @@ for (suffix in movies$html_suffix){
     .[1,1]
   
   reviews_counted = numbers %>% 
-    .[2,1] %>% 
-    as.numeric()
+    .[2,1] 
   
   fresh = numbers %>% 
-    .[3,1] %>% 
-    as.numeric()
+    .[3,1]
   
   rotten = numbers %>% 
-    .[4,1] %>% 
-    as.numeric()
+    .[4,1] 
   
   average_rating_by_audience = page %>% 
     xml_find_all("//div[@class='audience-info hidden-xs superPageFontColor']/div") %>% 
@@ -110,85 +127,30 @@ for (suffix in movies$html_suffix){
     xml_find_all("//div[@class='audience-info hidden-xs superPageFontColor']/div") %>%
     str_match("[0-9]*,?[0-9]+") %>% 
     .[2,1] %>% 
-    str_replace(",", "") %>% 
-    as.numeric()
+    str_replace(",", "")
+
   
-  rating = page %>%
+  attrs = page %>% 
+    xml_find_all("//div[@class='col col-sm-5 col-xs-10 clearfix subtle bold']") %>% 
+    xml_text()
+  
+  if ("Rating:" %in% attrs){
+    rating = page %>%
     xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']") %>%
     .[1] %>% 
     xml_text()
-  
-  genre_vector = page %>% 
-    xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']/link/span") %>% 
-    xml_text()
-  
-  
-  if ("Action & Adventure" %in% genre_vector){
-    action = TRUE
-  }else{
-    action = F
+  } else {
+    rating = NA
   }
   
-  if ("Animation" %in% genre_vector){
-    animation = TRUE
-  }else{
-    animation = F
+  if ("Genre:" %in% attrs){
+    genre_vector = page %>% 
+      xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']/link/span") %>% 
+      xml_text()
+  } else {
+    genre_vector = c()
   }
-  
-  if ("Comedy" %in% genre_vector){
-    comedy = T
-  }else{
-    comedy = F
-  }
-  
-  if ("Documentary" %in% genre_vector){
-    documentary = T
-  }else{
-    documentary = F
-  }
-  
-  if ("Drama" %in% genre_vector){
-    drama = T
-  }else{
-    drama = F
-  }
-  
-  if ("Horror" %in% genre_vector){
-    horror = T
-  }else{
-    horror = F
-  }
-  
-  if ("Kids & Family" %in% genre_vector){
-    kids = T
-  }else{
-    kids = F
-  }
-  
-  if ("Mystery & Suspense" %in% genre_vector){
-    mystery = T
-  }else{
-    mystery = F
-  }
-  
-  if ("Science Fiction & Fantasy" %in% genre_vector){
-    sci_fi = T
-  }else{
-    sci_fi = F
-  }
-  
-  if ("Special Interest" %in% genre_vector){
-    special_interest = T
-  }else{
-    special_interest = F
-  }
-  
-  if ("Television" %in% genre_vector){
-    television = T
-  }else{
-    television = F
-  }
-  
+  all_genres = unique(c(all_genres, genre_vector))
   genres = c()
   for (genre in move_genres){
     if (genre %in% genre_vector){
@@ -198,81 +160,77 @@ for (suffix in movies$html_suffix){
     }
   }
   
-  directed_by = page %>% 
-    xml_find_all("//div[@class='col-sm-19 col-xs-14 text-left']") 
-  if (length(directed_by) < 2){
-    directed_by = NA
-    written_by = NA
-  }else{
-    directed_by = directed_by %>% 
+  if ("Directed By:" %in% attrs){
+    directed_by = page %>% 
+    xml_find_all("//div[@class='col-sm-19 col-xs-14 text-left']") %>% 
       .[1] %>% 
       xml_text() %>% 
       str_replace_all("\n", "") %>%
       str_replace_all("[ ]{2,}", ",") %>% 
       str_replace_all("^,", "") %>% 
-      str_replace_all(",$", "")
-      directed_by = str_c(directed_by, collapse = ",")
-      directed_by = ifelse(length(directed_by)==0, NA, directed_by)
-      written_by = page %>% 
-      xml_find_all("//div[@class='col-sm-19 col-xs-14 text-left']") %>% 
-      .[2] %>% 
-      xml_text() %>% 
-      str_replace_all("\n", "") %>%
-      str_replace_all("[ ]{2,}", ",") %>% 
-      str_replace_all("^,", "") %>% 
-      str_replace_all(",$", "")
-  
-      written_by = str_c(written_by, collapse = ",")
-      written_by = ifelse(length(written_by)==0, NA, written_by)
+      str_replace_all(",$", "") %>% 
+      str_c(collapse = ",")
+  } else {
+    directed_by = NA
   }
   
-  in_theaters = page %>% 
-    xml_find_all("//div[@class='col-sm-19 col-xs-14 text-left']/time")
-  
-  if (length(in_theaters)==0){
-    in_theaters = NA
-  }else{
-    in_theaters = in_theaters %>% 
-    .[1] %>% 
+  if ("Written By:" %in% attrs){
+    mInfo = page %>% 
+    xml_find_all("//div[@class='col-sm-19 col-xs-14 text-left']") 
+    if (length(mInfo) == 1){
+      index = 1
+    }else{
+      if (is.na(directed_by)){
+        index = 1
+      }else{
+        index = 2
+      }
+    }
+    written_by = mInfo %>% 
+    xml_find_all("//div[@class='col-sm-19 col-xs-14 text-left']") %>% 
+    .[2] %>% 
     xml_text() %>% 
-    mdy() 
+    str_replace_all("\n", "") %>%
+    str_replace_all("[ ]{2,}", ",") %>% 
+    str_replace_all("^,", "") %>% 
+    str_replace_all(",$", "")
+    
+  }else{
+    written_by = NA
   }
   
+  if ("In Theaters:" %in% attrs){
+    in_theaters = page %>% 
+    xml_find_all("//div[@class='col-sm-19 col-xs-14 text-left']/time") %>% 
+      .[1] %>% 
+      xml_text()
+  }else{
+    in_theaters = NA
+  }
+
   
-  has_box = page %>% 
-    xml_find_all("//div[@class='col col-sm-5 col-xs-10 clearfix subtle bold']") %>% 
-    str_detect("Box Office") %>% 
-    any()
-  
-  if (has_box){
-    box = page %>% 
+  if ("Box Office:" %in% attrs){
+    mInfo = page %>% 
       xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']") %>%
-      xml_text() %>%
-      .[4] %>% 
-      str_match("[0-9]+")
-    print(box)
-    box = box %>% 
-      as.numeric()
+      xml_text()
   }else{
     box = NA
   }
   
-  runtime = page %>% 
-      xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']/time")
-  if (length(runtime) == 0){
-    runtime = NA
-  }else{
-    if (length(runtime) == 1){
-    index = 1
-  }else{
-    index = 2
-  }
-  runtime = runtime%>% 
+  if ("Runtime:" %in% attrs){
+    if ("On DVD:" %in% attrs){
+      index = 2
+    }else{
+      index = 1
+    }
+    runtime = page %>% 
+      xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']/time") %>% 
       .[index] %>% 
       xml_text() %>% 
-      str_match("[0-9]+") %>% 
-      as.numeric()
-  } 
+      str_match("[0-9]+")
+  }else{
+    runtime = NA
+  }
   
   cast = page %>% 
     xml_find_all("//div[@class='cast-item media inlineBlock ']/a")
@@ -284,16 +242,14 @@ for (suffix in movies$html_suffix){
       str_replace("/celebrity/", "") %>% 
       str_replace("_", " ")
   }
-  
+  cast = cast[!is.na(cast)]
   cast = str_c(cast, collapse=",")
   
   studio = page %>% 
       xml_find_all("//div[@class='col col-sm-19 col-xs-14 text-left']/a") %>% 
       xml_text()
-    #fetch
-    #rbind
-  new_movie = data.frame(
-                in_theaters, 
+
+  new_movie = c(in_theaters, 
                 box, 
                 tomato_meter,
                 audience_reviews,
@@ -304,57 +260,23 @@ for (suffix in movies$html_suffix){
                 rotten,
                 user_ratings,
                 rating,
-                action,
-                animation,
-                comedy,
-                documentary,
-                drama,
-                horror,
-                kids,
-                mystery,
-                sci_fi,
-                special_interest,
-                television,
+                genres,
                 directed_by,
                 written_by,
                 cast,
-                runtime
-                )
-  # names(new_movie) = col_names
-  # print(new_movie)
-  movies_df = bind_rows(movies_df, new_movie)
+                runtime) %>% 
+    matrix(nrow = 1, ncol = 35)
+  movies_matrix = rbind(movies_matrix, new_movie)
 }
-movies_df = bind_cols(data.frame(movies$Title), movies_df)
+
+movies_matrix = cbind(movies$Title, movies_matrix)
+movies_df = data.frame(movies_matrix)
+colnames(movies_df) = col_names
 View(movies_df)
 write_csv(movies_df, "movies_df.csv")
 
 
-# <div class="col col-sm-19 col-xs-14 text-left">$34284</div>
 
 
 
-
-  
-
-# <div class="col col-sm-19 col-xs-14 text-left">
-#                 <genre:link genreid="1">
-#                         <span>Action &amp; Adventure</span>
-#                     </genre:link>, <genre:link genreid="2">
-#                         <span>Animation</span>
-#                     </genre:link>, <genre:link genreid="11">
-#                         <span>Kids &amp; Family</span>
-#                     </genre:link></div>
-
-# user
-# 
-# <div class="audience-info hidden-xs superPageFontColor">
-#     <div>
-#             <span class="subtle superPageFontColor">Average Rating:</span>
-#             3.8/5
-#                 </div>
-#     <div>
-#         <span class="subtle superPageFontColor">User Ratings:</span>
-#         35,056</div>
-# </div>
-  
 ```
