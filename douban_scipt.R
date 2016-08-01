@@ -7,6 +7,14 @@
 #   
 
 knitr::opts_chunk$set(echo = TRUE)
+install.packages("rvest")
+install.packages("dplyr")
+install.packages("stringr")
+install.packages("xml2")
+install.packages("readr")
+install.packages("tidyr")
+install.packages("plyr")
+install.packages("XML")
 library(dplyr)
 library(stringr)
 library(xml2)
