@@ -31,15 +31,14 @@ col_names = c("name",
                 "asp")
 
 links = read_csv("douban_2015.csv")
-start = 200
+start = 990
 i = start
-end = nrow(links)
+end = 1000
 links = links[start:end,]
 
 movies_matrix = matrix(nrow = 0, ncol = 21)
 for (link in links$link){
-  print(str_c(as.character(i), " ", as.character(round((i-start) / (end - start) * 100, 2)), "% ", 
-              link, sep = ""))
+  print(str_c(as.character(i), " ", as.character(round((i-start) / (end - start) * 100, 2)), "% ", link, sep = ""))
   i = i + 1
   page = link %>% read_html()
   head_attrs = page %>% 
@@ -57,6 +56,9 @@ for (link in links$link){
   ratingValue = page %>% 
     xml_find_all(xpath = "//div[@class = 'ratingValue']/strong") %>% 
     xml_attr(attr = "title")
+  if (length(ratingValue)==0){
+    ratingValue = NA
+  }
   
   dateIndex = page %>% 
     xml_find_all(xpath = "//div[@class = 'subtext']/a") %>% 
@@ -66,11 +68,17 @@ for (link in links$link){
   date = page %>% 
     xml_find_all(xpath = "//div[@class = 'subtext']/a") %>% 
     .[dateIndex] %>% 
-    xml_text()
+    xml_text() %>% 
+    str_replace_all("\\([a-zA-Z]*\\)", "")
   if (length(date) == 0){
     date = NA
-  }else if(str_detect(date, "TV Series")){
-    next
+  }else{
+    date_str = date
+    date = dmy(date_str)
+    if (is.na(date)){
+      print(date_str)
+      next
+    }
   }
   
   plot_summary_attrs = page %>% 
@@ -295,7 +303,7 @@ for (link in links$link){
 movies_df = movies_matrix %>% 
   data.frame()
 colnames(movies_df) = col_names
-  write_csv("movies_imdb.csv")
+write_csv(movies_df, "movies_imdb.csv")
 
 
 ```
