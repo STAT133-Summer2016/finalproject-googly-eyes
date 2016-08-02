@@ -1,3 +1,4 @@
+
 library(dplyr)
 library(stringr)
 library(xml2)
@@ -6,11 +7,12 @@ library(readr)
 library(tidyr)
 library(plyr)
 library(XML)
+
 start = 0
 end = 980
 page_num <- seq(from = start, to = end, by = 20)
 
-for (year in 2009:2015){
+for (year in 2011:2014){
   
   df = data.frame(matrix(vector(), 0, 1,
                          dimnames=list(c(), c("link"))),
