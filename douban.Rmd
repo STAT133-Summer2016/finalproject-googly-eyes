@@ -28,7 +28,8 @@ df = data.frame(matrix(vector(), 0, 1,
                 stringsAsFactors=F)
 
 for (i in page_num) {
-  html_address <- str_c("https://movie.douban.com/tag/2015%20%E7%BE%8E%E5%9B%BD?start=", i, "&type=", sep = "")
+  
+  html_address <- str_c("https://movie.douban.com/tag/2013?start=", i, "&type=", sep = "")
   print(str_c(as.character(round((i - start)/(end - start)*100, 2)), "%"))
 
   page = html_address %>%
@@ -52,7 +53,7 @@ for (i in page_num) {
     }
   }
 }
-
+write.csv(df, "imdb13.csv")
 ```
 
 
