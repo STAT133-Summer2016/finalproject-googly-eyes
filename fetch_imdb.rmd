@@ -34,6 +34,7 @@ FetchAYear = function(year){
   i = start
   end = nrow(links)
   links = links[start:end,]
+
   
   movies_matrix = matrix(nrow = 0, ncol = 20)
   for (link in links$link){
@@ -317,7 +318,7 @@ FetchAYear = function(year){
   
 }
 
-years = c(2006:2008)
+years = c(2012:2013)
 for (year in years){
   FetchAYear(as.character(year))
 }
