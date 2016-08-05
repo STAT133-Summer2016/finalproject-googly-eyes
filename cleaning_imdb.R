@@ -26,6 +26,8 @@ movies_imdb = movies_imdb %>%
   filter(date < mdy("01-01-2016")) %>% 
   mutate(year = year(date))
 
+colnames(movies_imdb)[which(names(movies_imdb) == "general_rating_val")] <- "rating"
+
 min(movies_imdb$date, na.rm = TRUE)
 max(movies_imdb$date, na.rm = T)
 
