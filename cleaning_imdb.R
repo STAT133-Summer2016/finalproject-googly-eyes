@@ -34,7 +34,7 @@ max(movies_imdb$date, na.rm = T)
 
 cad_us_rate = read_csv("rates_data.csv")
 colnames(cad_us_rate) = c("date", "rate", as.character(1:9))
-View(cad_us_rate)
+
 cad_us_rate = cad_us_rate %>% 
   mutate(date = ymd(date)) %>% 
   select(date, rate)

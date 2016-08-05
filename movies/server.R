@@ -23,9 +23,40 @@ shinyServer(function(input, output) {
                   input$contentRating == contentRatingLevel) %>% 
      select(name, rating, director, stars, keywords)
    })
+ 
+ lucky <- reactive({
+   subset(imdb_dat, 
+          year >= input$year_range[1] & 
+            year <= input$year_range[2] &
+            all(input$genre %in% genres) &
+            input$contentRating == contentRatingLevel) %>% 
+     arrange(desc(rating)) %>% 
+     select(trailer) %>% 
+     head(1)
+ })
    
+ trailer <- reactive({
+   subset(imdb_dat, 
+          year >= input$year_range[1] & 
+            year <= input$year_range[2] &
+            all(input$genre %in% genres) &
+            input$contentRating == contentRatingLevel) %>% 
+     arrange(desc(rating)) %>% 
+     select(trailer) %>% 
+     head(1) %>% 
+     .[[1]][[1]]
+ })
+ 
   output$tbl <- renderDataTable({
     imdb()
+  })
+  
+  output$trailer <- renderText({
+    trailer()
+  })
+  
+  output$lucky <- renderDataTable({
+    lucky()
   })
 })
 

@@ -54,7 +54,7 @@ shinyUI(fluidPage(
       hr(),
     
       wellPanel(
-        helpText(   a("Look it up on Github!", href="https://github.com/hrzlvn", taget = "blank")
+        helpText( a("Look it up on Github!", href="https://github.com/hrzlvn", taget = "blank")
         )
       )
     
@@ -65,8 +65,12 @@ shinyUI(fluidPage(
       tabsetPanel(
         
         tabPanel("Movie List", dataTableOutput("tbl")),
-      
-        tabPanel("I am feeling lucky!")
+        
+        tabPanel("Presentation Tab 1"),
+        tabPanel("Presentation Tab 2"),
+        tabPanel("Presentation Tab 3"),
+        tabPanel("Presentation Tab 4")
+        
         )
       )
     )
