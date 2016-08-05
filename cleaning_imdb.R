@@ -10,8 +10,7 @@ for (year in years){
   movies_imdb = rbind(movies_imdb, df)
 }
 
-write_csv(movies_imdb, "movies_imdb.csv")
-movies_rt = read_csv("movies_df.csv")
+#movies_rt = read_csv("movies_df.csv")
 movies_imdb$contentRating[7600] = str_c("Rated", movies_imdb$contentRating[7600], sep=" ")
 movies_imdb = movies_imdb %>% 
   mutate(general_rating_val = str_match(ratingValue, "[0-9]\\.[0-9]")) %>% 
@@ -36,4 +35,5 @@ cad_us_rate = cad_us_rate %>%
   mutate(date = ymd(date)) %>% 
   select(date, rate)
 
+write_csv(movies_imdb, "movies_imdb.csv")
 View(movies_imdb)
