@@ -1,29 +1,18 @@
+# use Lab 21 and CreatingShiny as referece
 shinyUI(fluidPage(
+  theme = "bootstrap.css",
   titlePanel("Movies Query"),
+  em("by Rongzhao Huang"),
+  br(),
+  br(),
   
   sidebarLayout(
     sidebarPanel(
-      checkboxGroupInput("checkGroupYear", 
-                         label = h3("Year"), 
-                         choices = list("2000" = 2000, 
-                                        "2001" = 2001, 
-                                        "2002" = 2002,
-                                        "2003" = 2003, 
-                                        "2004" = 2004, 
-                                        "2005" = 2005,
-                                        "2006" = 2006, 
-                                        "2007" = 2007, 
-                                        "2008" = 2008,
-                                        "2009" = 2009, 
-                                        "2010" = 2010, 
-                                        "2011" = 2011,
-                                        "2012" = 2012, 
-                                        "2013" = 2013, 
-                                        "2014" = 2014,
-                                        "2015" = 2015),
-                         selected = 1),
+      sliderInput("year_range", label = h3("Range of years:"), min = 2000, max = 2015, value = c(2000, 2015), 
+                  format = "####"),
+      hr(),
       
-      checkboxGroupInput("checkGroupGenre", 
+      checkboxGroupInput("genre", 
                          label = h3("Genre"), 
                          choices = list("Action" = "Action",
                                         "Animation" = "Animation", 
@@ -47,26 +36,39 @@ shinyUI(fluidPage(
                                         "Thriller" = "Thriller",
                                         "Western" = "Western"
                          ),
-                         selected = 1),
+                         selected = "Action"),
+      hr(),
       
       radioButtons("contentRating", label = h3("Content Rating"),
-                   choices = list("R" = "R"  ,
+                   choices = list("G" = "G",
                                   "PG" = "PG",
                                   "PG-13" = "PG-13",
-                                  "NC-17" = "NC-17"),
-                   selected = 1),
+                                  "NC-17" = "NC-17",
+                                  "R" = "R"),
+                   selected = "R"),
       
+      hr(),
       
-      radioButtons("arrange", label = h3("Arrange By"),
-                   choices = list("Rating" = rating,
-                                  "Meta Score" = metaScore,
-                                  "Gross" = gross,
-                                  "Popularity" = popularity),
-                   selected = 1)
+      img(src = "./ucb.png", height = "100", style = "margin-left:30%"),
       
+      hr(),
+    
+      wellPanel(
+        helpText(   a("Look it up on Github!", href="https://github.com/hrzlvn", taget = "blank")
+        )
+      )
+    
+
     ),
     mainPanel(
-      plotOutput("demo_plot")
+      
+      tabsetPanel(
+        
+        tabPanel("Movie List", dataTableOutput("tbl")),
+      
+        tabPanel("I am feeling lucky!")
+        )
+      )
     )
   )
-))
+)
