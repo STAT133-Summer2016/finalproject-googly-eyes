@@ -24,6 +24,7 @@ movies_imdb = movies_imdb %>%
   filter(str_detect(country, "USA")) %>% 
   filter(date > mdy("01-01-2000")) %>% 
   filter(date < mdy("01-01-2016")) %>% 
+  mutate(name = str_replace_all(name, "\\([0-9]{4}\\)", "")) %>% 
   mutate(year = year(date))
 
 colnames(movies_imdb)[which(names(movies_imdb) == "general_rating_val")] <- "rating"
