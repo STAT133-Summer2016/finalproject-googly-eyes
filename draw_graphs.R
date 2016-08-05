@@ -2,6 +2,7 @@ library(readr)
 library(stringr)
 library(dplyr)
 library(tidyr)
+library(lubridate)
 years = 2000:2015
 movies_imdb = data.frame()
 for (year in years){
@@ -19,7 +20,20 @@ movies_imdb = movies_imdb %>%
   mutate(review_critcs = str_match(review_users, "[0-9]\\.[0-9]") %>% 
            str_replace(",", "")) %>% 
   mutate(contentRatingLevel = str_replace(contentRating, "(rated )|(Rated )", "")) %>% 
-  mutate(contentRatingLevel = str_replace(contentRatingLevel, " for.*", "")) %>% 
-  filter(str_detect(country, "USA"))
+  mutate(contentRatingLevel = str_replace(contentRatingLevel, "( for.*)|( on.*)|( For.*)|(thematic.*)|( material.*)", "")) %>%
+  mutate(contentRatingLevel = str_replace_all(contentRatingLevel, " ", "")) %>% 
+  filter(str_detect(country, "USA")) %>% 
+  filter(date > mdy("01-01-2000")) %>% 
+  filter(date < mdy("01-01-2016"))
+
+min(movies_imdb$date, na.rm = TRUE)
+max(movies_imdb$date, na.rm = T)
+
+cad_us_rate = read_csv("rates_data.csv")
+colnames(cad_us_rate) = c("date", "rate", as.character(1:9))
+View(cad_us_rate)
+cad_us_rate = cad_us_rate %>% 
+  mutate(date = ymd(date)) %>% 
+  select(date, rate)
 
 View(movies_imdb)
