@@ -1,0 +1,355 @@
+---
+title: "Creating a Shiny App Part 1"
+author: "Andrew Do"
+date: "July 13, 2016"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE, echo = TRUE)
+library(ggplot2)
+```
+
+# Welcome To Shiny
+
+## Introduction
+This tutorial has been adapted from the one [on the RStudio website](http://shiny.rstudio.com/tutorial/lesson1/).  The ideas are the same, but the code has been modified to showcase the packages we've been working with all semester.  Please read the tutorial in its knitted form.  It will make significantly less sense with all the markup.
+
+Shiny is an R package that makes it easy to build interactive web applications (apps) straight from R. This lesson will get you started building Shiny apps right away.
+
+If you still haven't installed the Shiny package, open an R session, connect to the internet, and run
+```{r}
+install.packages("shiny")
+```
+
+## Structure of a Shiny App
+For starters, you should think of Shiny Apps as having two mandatory components:
+
+1. a user-interface script
+2. a server script
+
+The user-interface script (ui) controls the layout and appearance of your app. It is defined in a source script named `ui.R`.  The `server.R` script, on the other hand, contains instructions that your computer needs to build your app.  As you start out, you can think of the names of the files as __always__ having to be `ui.R` and `server.R`---you separate different apps by placing their user-interface and server scripts __in different directories__.
+
+Below are examples of `ui.R` and `server.R` scripts and the app that they power.
+
+### ui.R
+```{r}
+library(shiny)
+
+# Define UI for application that draws a histogram
+shinyUI(fluidPage(
+
+  # Application title
+  titlePanel("Hello Shiny!"),
+
+  # Sidebar with a slider input for the number of bins
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("bins",
+                  "Number of bins:",
+                  min = 1,
+                  max = 50,
+                  value = 30)
+    ),
+
+    # Show a plot of the generated distribution
+    mainPanel(
+      plotOutput("distPlot")
+    )
+  )
+))
+```
+
+### server.R
+```{r}
+library(shiny)
+library(dplyr)
+library(ggplot2)
+
+# Define server logic required to draw a histogram
+shinyServer(function(input, output) {
+  
+  # Expression that generates a histogram. The expression is
+  # wrapped in a call to renderPlot to indicate that:
+  #
+  #  1) It is "reactive" and therefore should re-execute automatically
+  #     when inputs change
+  #  2) Its output type is a plot
+  
+  output$distPlot <- renderPlot({
+    df    <- faithful  # Old Faithful Geyser data
+    bins  <- input$bins
+    
+    # draw the histogram with the specified number of bins
+    ggplot(df, aes(x = waiting)) +
+      geom_histogram(bins = bins, fill = "darkgray")
+  })
+})
+```
+
+### Histogram of Old Faithful Eruption Wait Times
+```{r, echo=FALSE, eval = TRUE}
+shinyAppDir(
+  "../examples/001-histogram",
+  options = list(
+    width = "100%", height = 550
+  )
+)
+```
+
+## Running a Shiny App
+
+Every Shiny app has the same structure: two R scripts saved together in a directory. As stated before, at a minimum, a Shiny app has `ui.R` and `server.R` files.
+
+You can create a Shiny app by making a new directory and saving a `ui.R` and `server.R` file inside it. Each app will need its own unique directory.
+
+You can run a Shiny app by giving the name of its directory to the function `runApp`. For example if your Shiny app is in a directory called `my_app`, run it with the following code:
+
+```{r}
+library(shiny)
+runApp("my_app")
+```
+
+### Your Turn
+
+Let's just make sure you caught everything about how to run a Shiny App.  Make `server.R` and `ui.R` files using the example above and put them into their own directory.  Modify the code so that:
+
+1. Change the color of the histogram from `"darkgray"` to `"skyblue"`
+2. Set the minimum value of the slider bar to 5.
+3. Change the title from `"Hello Shiny!"` to `"Hello World!"`.
+
+Launch the app!  It should look something like:
+
+```{r eruptions ggplot, echo=FALSE, eval = TRUE}
+ex1_ui <- shinyUI(fluidPage(
+  
+  # Application title
+  titlePanel("Hello World!"),
+  
+  # Sidebar with a slider input for the number of bins
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("bins",
+                  "Number of bins:",
+                  min = 5,
+                  max = 50,
+                  value = 30)
+    ),
+    
+    # Show a plot of the generated distribution
+    mainPanel(
+      plotOutput("distPlot")
+    )
+  )
+))
+
+ex1_server <- shinyServer(function(input, output) {
+  
+  # Expression that generates a histogram. The expression is
+  # wrapped in a call to renderPlot to indicate that:
+  #
+  #  1) It is "reactive" and therefore should re-execute automatically
+  #     when inputs change
+  #  2) Its output type is a plot
+  
+  output$distPlot <- renderPlot({
+    df    <- faithful
+    bins  <- input$bins
+    
+    ggplot(df, aes(x = waiting)) +
+      geom_histogram(bins = bins, fill = "skyblue")
+  })
+})
+
+shinyApp(ex1_ui, ex1_server)
+```
+
+# Making and App from Scratch
+
+## Starting Template
+For the time being, let's think of these two starter files as templates for a Shiny App.  Make a new directory called `my_first_app` and create these two files:
+
+### ui.R
+```{r}
+shinyUI(fluidPage(
+))
+```
+
+
+### server.R
+```{r}
+shinyServer(function(input, output) {
+})
+```
+
+This will create a blank app that doesn't do anything.
+
+## Layout
+`fluidPage` is a function manages the dimensions of the app for you.  By far the most common layout is the sidebar layout with sidebar and title panels.
+
+### ui.R
+```{r}
+shinyUI(fluidPage(
+  titlePanel("title panel name"),
+
+  sidebarLayout(
+    sidebarPanel( "sidebar panel name"),
+    mainPanel("main panel name")
+  )
+))
+```
+
+```{r, echo = FALSE, eval = TRUE}
+shinyUI(fluidPage(
+  titlePanel("title panel name"),
+
+  sidebarLayout(
+    sidebarPanel("sidebar panel name"),
+    mainPanel("main panel name")
+  )
+))
+
+```
+
+When you use `sidebarLayout`, you will always have `sidebarPanel()` and `mainPanel()` as its arguments.  For a more advanced tutorial on layouts, [visit this link](http://shiny.rstudio.com/articles/layout-guide.html).  It's possible to customize text and add images to your app using html-like functions.  For more information on that, [look here](http://shiny.rstudio.com/tutorial/lesson2/).
+
+## Widgets
+
+A widget is and object that your users can interact with, allowing them to send messages to your Shiny app.  Shiny comes with a family of pre-built widgets, each with an aptly descriptive name:
+
+function               | widget
+---------------------- | -----------------------------------
+actionButton           |	Action Button
+checkboxGroupInput	   | A group of check boxes
+checkboxInput	         | A single check box
+dateInput	             | A calendar to aid date selection
+dateRangeInput	       | A pair of calendars for selecting a date range
+fileInput	             | A file upload control wizard
+helpText	             | Help text that can be added to an input form
+numericInput	         | A field to enter numbers
+radioButtons	         | A set of radio buttons
+selectInput	           | A box with choices to select from
+sliderInput	           | A slider bar
+submitButton	         | A submit button
+textInput	             | A field to enter text
+
+```{r, echo = FALSE, eval = TRUE}
+shinyUI(fluidPage(
+  titlePanel("Basic widgets"),
+  
+  fluidRow(
+    
+    column(3,
+      h3("Buttons"),
+      actionButton("action", label = "Action"),
+      br(),
+      br(), 
+      submitButton("Submit")),
+    
+    column(3,
+      h3("Single checkbox"),
+      checkboxInput("checkbox", label = "Choice A", value = TRUE)),
+    
+    column(3, 
+      checkboxGroupInput("checkGroup", 
+        label = h3("Checkbox group"), 
+        choices = list("Choice 1" = 1, 
+           "Choice 2" = 2, "Choice 3" = 3),
+        selected = 1)),
+    
+    column(3, 
+      dateInput("date", 
+        label = h3("Date input"), 
+        value = "2014-01-01"))   
+  ),
+  
+  fluidRow(
+    
+    column(3,
+      dateRangeInput("dates", label = h3("Date range"))),
+    
+    column(3,
+      fileInput("file", label = h3("File input"))),
+    
+    column(3, 
+      h3("Help text"),
+      helpText("Note: help text isn't a true widget,", 
+        "but it provides an easy way to add text to",
+        "accompany other widgets.")),
+    
+    column(3, 
+      numericInput("num", 
+        label = h3("Numeric input"), 
+        value = 1))   
+  ),
+    
+  fluidRow(
+    
+    column(3,
+      radioButtons("radio", label = h3("Radio buttons"),
+        choices = list("Choice 1" = 1, "Choice 2" = 2,
+                       "Choice 3" = 3),selected = 1)),
+    
+    column(3,
+      selectInput("select", label = h3("Select box"), 
+        choices = list("Choice 1" = 1, "Choice 2" = 2,
+                       "Choice 3" = 3), selected = 1)),
+    
+    column(3, 
+      sliderInput("slider1", label = h3("Sliders"),
+        min = 0, max = 100, value = 50),
+      sliderInput("slider2", "",
+        min = 0, max = 100, value = c(25, 75))
+      ),
+    
+    column(3, 
+      textInput("text", label = h3("Text input"), 
+        value = "Enter text..."))   
+  )
+
+))
+
+```
+
+
+## Adding Widgets
+
+Every widget function has several arguments, but the first two will always be:
+
+* A __Name__ for the widget as a string.  The user will not see this name, but you will use it to access the values produced by the widget.
+* A __label__ as a string.  This label will appear for the user to see.  An empty string, as usual, will be how you produce a labelless widget.
+
+### Your turn
+Modify your `ui.R` script to create the user-interface below.  The widgets that were used were: `fileInput`, `selectInput`, and `sliderInput`.  You'll also need the `helpText` function to create the help message.  You can peek into the `rmd` file if you get stuck, but try to do it on your own.
+
+```{r, eval = TRUE, echo = FALSE}
+shinyUI(fluidPage(
+  titlePanel("Occupancy Rates in Berkeley"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      helpText("Upload an XML file with the Census Data to get started"),
+      
+      fileInput("file", label = "File input"),
+      
+      selectInput("neigh", 
+        label = "Choose the neighborhood to inspect",
+        choices = list("North Berkeley", 
+                       "Rockridge",
+                       "Downtown Berkeley", 
+                       "Berkeley Hills"),
+        selected = "North Berkeley"),
+      
+      sliderInput("occupancy", 
+        label = "Number of People in Household:",
+        min = 0, max = 40, value = c(0, 40))
+    ),
+    
+    mainPanel()
+  )
+))
+```
+
+## Lab Submission:
+Submit the `ui.R` and `server.R` file from the last __Your turn__ task.
