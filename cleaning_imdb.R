@@ -10,7 +10,7 @@ for (year in years){
   movies_imdb = rbind(movies_imdb, df)
 }
 
-#movies_rt = read_csv("movies_df.csv")
+movies_rt = read_csv("movies_df.csv")
 movies_imdb$contentRating[7600] = str_c("Rated", movies_imdb$contentRating[7600], sep=" ")
 movies_imdb = movies_imdb %>% 
   mutate(general_rating_val = str_match(ratingValue, "[0-9]\\.[0-9]")) %>% 
@@ -23,7 +23,8 @@ movies_imdb = movies_imdb %>%
   mutate(contentRatingLevel = str_replace_all(contentRatingLevel, " ", "")) %>% 
   filter(str_detect(country, "USA")) %>% 
   filter(date > mdy("01-01-2000")) %>% 
-  filter(date < mdy("01-01-2016"))
+  filter(date < mdy("01-01-2016")) %>% 
+  mutate(year = year(date))
 
 min(movies_imdb$date, na.rm = TRUE)
 max(movies_imdb$date, na.rm = T)
