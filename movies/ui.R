@@ -1,6 +1,8 @@
 # use Lab 21 and CreatingShiny as referece
+library(ggvis)
+
 shinyUI(fluidPage(
-  theme = "bootstrap.css",
+  # theme = "bootstrap.css",
   titlePanel("Movies Query"),
   em("by Rongzhao Huang"),
   br(),
@@ -63,13 +65,14 @@ shinyUI(fluidPage(
     mainPanel(
       
       tabsetPanel(
-        
+  
         tabPanel("Movie List", dataTableOutput("tbl")),
         
-        tabPanel("Presentation Tab 1"),
-        tabPanel("Presentation Tab 2"),
+        tabPanel("Presentation Tab 1", plotOutput("graph1")),
+        tabPanel("Presentation Tab 2", ggvisOutput("ggvis")),
         tabPanel("Presentation Tab 3"),
         tabPanel("Presentation Tab 4")
+        
         
         )
       )
