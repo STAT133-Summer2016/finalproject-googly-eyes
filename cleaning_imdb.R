@@ -56,6 +56,11 @@ movies_imdb$contentRating[7600] = str_c("Rated", movies_imdb$contentRating[7600]
 movies_imdb = movies_imdb %>% 
   mutate(general_rating_val = str_match(ratingValue, "[0-9]\\.[0-9]")) %>% 
   mutate(general_rating_val = as.numeric(general_rating_val)) %>% 
+  mutate(general_rating_user = str_match(ratingValue, "based on .* user ratings") %>% 
+           str_replace("based on ", "") %>% 
+           str_replace(" user ratings", "") %>% 
+           str_replace(",", "") %>% 
+         as.numeric()) %>% 
   mutate(review_users = str_replace(review_users, "user", "") %>% 
            str_replace(",", "") %>% str_replace(" ", "") %>% as.numeric()) %>% 
   mutate(review_critcs = str_replace(review_critcs, "critic", "") %>% 

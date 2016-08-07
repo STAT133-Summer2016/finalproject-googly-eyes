@@ -105,8 +105,8 @@ shinyUI(fluidPage(
                              value = 2000, 
                              format = "####",
                              animate = TRUE),
-                  plotOutput("graph2"))
-        
+                  plotOutput("graph2")),
+        tabPanel("rating user and box", plotOutput("graph3"))
         
         
         )

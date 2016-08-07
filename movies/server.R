@@ -22,7 +22,7 @@ movie_by_genre = reactive({
           year <= input$year_range[2] & 
           str_detect(genres, input$genre) &
           str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep=""))) %>% 
-  select(name, rating, director, stars, keywords, genres, year, budget, gross) %>% 
+  select(name, rating, director, stars, keywords, genres, year, budget, gross, general_rating_user) %>% 
   mutate(budget = budget %>% as.numeric(),
          gross = gross %>% as.numeric())
 })
@@ -86,13 +86,16 @@ movie_by_genre_for_graphs = reactive({
   
   output$graph2 = renderPlot({
     movie_by_genre() %>% 
-      filter(year == input$year_for_graph2) %>% 
-      ggplot() +
-      geom_smooth(aes(x=gross, y=rating), color = "red")+ggtitle(input$genre) +
-      geom_point(aes(x=gross, y=rating), color = "blue", alpha = 0.4) +
-      scale_x_continuous(limits = c(0, 500000000))+
-      scale_y_continuous(limits = c(0, 10))
+      # filter(year == input$year_for_graph2) %>% 
+      ggplot()+
+      geom_point(aes(x=general_rating_user, y = rating))
   }, height = 600, width = 600)
+  
+  output$graph3 = renderPlot({
+    movie_by_genre() %>% 
+      ggplot() +
+      geom_point(aes(x = general_rating_user, y = gross))
+  })
     
     movies_by_director %>% 
       arrange(desc(mean_gross)) %>% 
