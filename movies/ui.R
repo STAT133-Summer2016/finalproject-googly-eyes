@@ -23,9 +23,9 @@ all_genres=c("Animation",
              "Western")
 
 shinyUI(fluidPage(
-  # theme = "bootstrap.css",
+  theme = "bootstrap.css",
   titlePanel("Movies Query"),
-  em("by Rongzhao Huang"),
+  em("by Guanghongfu, Wenjun Zeng, Rongzhao Huang, Bian Yin"),
   br(),
   br(),
   
@@ -83,7 +83,7 @@ shinyUI(fluidPage(
       hr(),
     
       wellPanel(
-        helpText( a("Look it up on Github!", href="https://github.com/hrzlvn", taget = "blank")
+        helpText( a("Look it up on Github!", href="https://github.com/STAT133-Summer2016/finalproject-googly-eyes", taget = "blank")
         )
       )
     
@@ -93,10 +93,20 @@ shinyUI(fluidPage(
       
       tabsetPanel(
   
-        tabPanel("Movie List", dataTableOutput("tbl")),
+        tabPanel("Movies Ranking", 
+                 radioButtons("datasetSelection", 
+                              label = h3("Select Dataset"),
+                              choices = list("IMDB" = "IMDB",
+                                             "Rotten Tomatoes" = "RottenTomatoes"),
+                              selected = "IMDB"),
+                 dataTableOutput("tbl")
+        ),
+        
         tabPanel("Genres and Box", plotOutput("graph1")),
+        
         tabPanel("Directors and Box", ggvisOutput("ggvis1")),
         tabPanel("Actors and Box", ggvisOutput("ggvis2")),
+        
         tabPanel("Genres, rating and Box", 
                  sliderInput("year_for_graph2", 
                              label = h3(""), 
@@ -106,6 +116,7 @@ shinyUI(fluidPage(
                              format = "####",
                              animate = TRUE),
                   plotOutput("graph2")),
+        
         tabPanel("rating user and box", plotOutput("graph3"))
         
         

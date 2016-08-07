@@ -271,3 +271,59 @@ all_genres=c("Animation",
 
 
 
+#-------------------------------------------------------------------------------------------------------------
+#Rotten Tomatoes cleaning
+#-------------------------------------------------------------------------------------------------------------
+
+
+movies_rt = read_csv("movies_df.csv")
+colnames(movies_rt)[which(names(movies_rt) == "Action & Adventure")] <- "Action"
+colnames(movies_rt)[which(names(movies_rt) == "Kids & Family")] <- "Family"
+colnames(movies_rt)[which(names(movies_rt) == "Musical & Performing Arts")] <- "Musical"
+colnames(movies_rt)[which(names(movies_rt) == "Mystery & Suspense")] <- "Mystery"
+colnames(movies_rt)[which(names(movies_rt) == "Science Fiction & Fantasy")] <- "Fantasy"
+colnames(movies_rt)[which(names(movies_rt) == "Sports & Fitness")] <- "Sport"
+colnames(movies_rt)[which(names(movies_rt) == "Cult Movies")] <- "Thriller"
+colnames(movies_rt)[which(names(movies_rt) == "Classics")] <- "History"
+colnames(movies_rt)[which(names(movies_rt) == "Classification")] <- "contentRatingLevel"
+colnames(movies_rt)[which(names(movies_rt) == "Tomato_meter")] <- "rating"
+colnames(movies_rt)[which(names(movies_rt) == "Directed_by")] <- "director"
+colnames(movies_rt)[which(names(movies_rt) == "Cast")] <- "stars"
+colnames(movies_rt)[which(names(movies_rt) == "Title")] <- "name"
+
+movies_rt = movies_rt %>% 
+  mutate(SciFi = Fantasy) %>% 
+  mutate(Adventure = Action) %>% 
+  mutate(year = str_match(name, "[0-9]{4}")) %>% 
+  mutate(name = str_replace_all(name, "[0-9]{4}", "")) %>% 
+  mutate(name = str_replace_all(name, "\\(\\)", "")) %>% 
+  mutate(contentRatingLevel = str_replace_all(contentRatingLevel, "\\(.*\\)", "")) %>% 
+  mutate(contentRatingLevel = str_replace_all(contentRatingLevel, " $", "")) %>% 
+  mutate(genres = "default") %>% 
+  mutate(name = str_replace_all(name, "�", "")) %>% 
+  mutate(name = str_replace_all(name, ":", ""))
+
+#collapse genre boolean column into single column containing a single vector
+movies_rt = mutate(movies_rt, genres = ifelse(Action == TRUE, str_c(genres, ",Action"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Adeventure == TRUE, str_c(genres, ",Adventure"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Animation == TRUE, str_c(genres, ",Animation"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(History == TRUE, str_c(genres, ",History"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Comedy == TRUE, str_c(genres, ",Comedy"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Documentary == TRUE, str_c(genres, ",Documentary"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Family == TRUE, str_c(genres, ",Family"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Horror == TRUE, str_c(genres, ",Horror"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Musical == TRUE, str_c(genres, ",Musical"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Romance == TRUE, str_c(genres, ",Romance"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Sport == TRUE, str_c(genres, ",Sport"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Thriller == TRUE, str_c(genres, ",Thriller"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Drama == TRUE, str_c(genres, ",Drama"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Horror == TRUE, str_c(genres, ",Horror"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Mystery == TRUE, str_c(genres, ",Mystery"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Fantasy == TRUE, str_c(genres, ",Fantasy"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(Western == TRUE, str_c(genres, ",Western"), genres))
+movies_rt = mutate(movies_rt, genres = ifelse(SciFi == TRUE, str_c(genres, ",Sci-Fi"), genres)) 
+movies_rt = mutate(movies_rt, genres = str_replace_all(genres, "default,", ""))
+# movies_rt = mutate(movies_rt, genres = str_split(genres, ","))
+write_csv(movies_rt, "movies_rotten.csv")
+View(movies_rt)
+

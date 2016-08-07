@@ -11,11 +11,30 @@ library(scales)
 library(ggplot2)
 
 imdb_dat = read.csv("movies_imdb.csv", stringsAsFactors = FALSE)
+rt_dat = read.csv("movies_rotten.csv", stringsAsFactors = FALSE)
 movies_by_director = read.csv("movies_by_director.csv", stringsAsFactors = FALSE)
 actors_and_movies = read_csv("actors_and_movies.csv")
 
 shinyServer(function(input, output) {
 
+  imdb_display= reactive({
+    imdb_dat %>% 
+      filter( year >= input$year_range[1] & 
+                year <= input$year_range[2] & 
+                str_detect(genres, input$genre) &
+                str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep=""))) %>% 
+      select(name, rating, director, stars, keywords)
+  })
+  
+  rt_display= reactive({
+    rt_dat %>% 
+      filter( year >= input$year_range[1] & 
+                year <= input$year_range[2] & 
+                str_detect(genres, input$genre) &
+                str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep=""))) %>% 
+      select(name, rating, director, stars)
+  })
+  
 movie_by_genre = reactive({
   imdb_dat %>% 
   filter( year >= input$year_range[1] & 
@@ -63,9 +82,15 @@ movie_by_genre_for_graphs = reactive({
      .[[1]][[1]]
  })
  
-  output$tbl <- renderDataTable({
-    movie_by_genre()
-  })
+ output$tbl <- renderDataTable({
+   if(input$datasetSelection == "IMDB"){
+     imdb_display() 
+   }
+   else if(input$datasetSelection == "RottenTomatoes"){
+     rt_display()
+   }
+ })
+ 
   
   output$trailer <- renderText({
     trailer()
@@ -86,7 +111,7 @@ movie_by_genre_for_graphs = reactive({
   
   output$graph2 = renderPlot({
     movie_by_genre() %>% 
-      # filter(year == input$year_for_graph2) %>% 
+      filter(year == input$year_for_graph2) %>% 
       ggplot()+
       geom_point(aes(x=general_rating_user, y = rating))
   }, height = 600, width = 600)
