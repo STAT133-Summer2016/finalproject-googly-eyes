@@ -1,3 +1,0 @@
-```{r}
-movies_df = read_csv("movies_df.csv")
-```
