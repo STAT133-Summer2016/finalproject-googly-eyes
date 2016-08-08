@@ -6,42 +6,42 @@ library(lubridate)
 library(ggplot2)
 
 # Convert gross and budget currency to USD
-cad_us_rate = read_csv("rates_data_cad.csv")
-colnames(cad_us_rate) = c("date", "rate", as.character(1:9))
-cad_us_rate = cad_us_rate %>% 
-  mutate(date = ymd(date)) %>% 
-  select(date, rate)
+# cad_us_rate = read_csv("rates_data_cad.csv")
+# colnames(cad_us_rate) = c("date", "rate", as.character(1:9))
+# cad_us_rate = cad_us_rate %>% 
+#   mutate(date = ymd(date)) %>% 
+#   select(date, rate)
+# 
+# aud_us_rate = read_csv("rates_data_aud.csv")
+# colnames(aud_us_rate) = c("date", "rate", as.character(1:9))
+# aud_us_rate = aud_us_rate %>% 
+#   mutate(date = ymd(date)) %>% 
+#   select(date, rate)
 
-aud_us_rate = read_csv("rates_data_aud.csv")
-colnames(aud_us_rate) = c("date", "rate", as.character(1:9))
-aud_us_rate = aud_us_rate %>% 
-  mutate(date = ymd(date)) %>% 
-  select(date, rate)
-
-CurrencyExchange = function(date, money, currency){
-  if (currency == "CAD"){
-    money = str_match(money, "[0-9]+") %>% as.numeric()
-    for (i in 1:nrow(cad_us_rate)){
-      if (cad_us_rate[i,1] < date){
-        return(money / cad_us_rate[i,2])
-      }
-    }
-    NA
-  }
-  if (currency == "AUD"){
-    money = str_match(money, "[0-9]+") %>% as.numeric()
-    for (i in 1:nrow(aud_us_rate)){
-      if (aud_us_rate[i,1] < date){
-        return(money / aud_us_rate[i,2])
-      }
-    }
-    NA
-  }
-  if (currency == "DKK"){
-    return(str_match(money, "[0-9]+") %>% as.numeric() / 6.99181)
-  }
-  NA
-}
+# CurrencyExchange = function(date, money, currency){
+#   if (currency == "CAD"){
+#     money = str_match(money, "[0-9]+") %>% as.numeric()
+#     for (i in 1:nrow(cad_us_rate)){
+#       if (cad_us_rate[i,1] < date){
+#         return(money / cad_us_rate[i,2])
+#       }
+#     }
+#     NA
+#   }
+#   if (currency == "AUD"){
+#     money = str_match(money, "[0-9]+") %>% as.numeric()
+#     for (i in 1:nrow(aud_us_rate)){
+#       if (aud_us_rate[i,1] < date){
+#         return(money / aud_us_rate[i,2])
+#       }
+#     }
+#     NA
+#   }
+#   if (currency == "DKK"){
+#     return(str_match(money, "[0-9]+") %>% as.numeric() / 6.99181)
+#   }
+#   NA
+# }
 
 # Row bind data of each year to a large data set
 years = 2000:2015
@@ -327,3 +327,104 @@ movies_rt = mutate(movies_rt, genres = str_replace_all(genres, "default,", ""))
 write_csv(movies_rt, "movies_rotten.csv")
 View(movies_rt)
 
+
+#-------------------------------------------------------------------------------------------------------------
+#genre counting
+#-------------------------------------------------------------------------------------------------------------
+imdb = read_csv("movies_imdb.csv") 
+  
+genreCounting = function(genre, years){
+result = c()
+for( y in years){
+  genre_imdb = imdb %>% 
+    filter(y == year) %>%
+    mutate(genres = str_split(genres, ",")) %>% 
+    filter(str_detect(genres, genre))
+    result = c(result, nrow(genre_imdb))
+}  
+return(result)
+}
+
+ActionL = genreCounting("Action", 2000:2015)
+ComedyL = genreCounting("Comedy", 2000:2015)
+DocumentaryL = genreCounting("Documentary", 2000:2015)
+FamilyL = genreCounting("Family", 2000:2015)
+HorrorL = genreCounting("Horror", 2000:2015)
+MusicalL = genreCounting("Musical", 2000:2015)
+RomanceL = genreCounting("Romance", 2000:2015)
+SportL = genreCounting("Sport", 2000:2015)
+WarL = genreCounting("War", 2000:2015)
+AdventureL = genreCounting("Adventure", 2000:2015)
+BiograhyL = genreCounting("Biography", 2000:2015)
+CrimeL = genreCounting("Crime", 2000:2015)
+DramaL = genreCounting("Drama", 2000:2015)
+FantasyL = genreCounting("Fantasy", 2000:2015)
+HistoryL = genreCounting("History", 2000:2015)
+MusicL = genreCounting("Music", 2000:2015)
+MysteryL = genreCounting("Mystery", 2000:2015)
+SciFiL = genreCounting("Sci-Fi", 2000:2015)
+WesternL = genreCounting("Western", 2000:2015)
+
+genre_count_df = as.data.frame(matrix(ncol = 20, nrow = 16))
+names(genre_count_df) = c("year", "Action", "Comedy", "Documentary",
+                          "Family", "Horror", "Musical", "Romance", "Sport", "War",
+                          "Adventure", "Biography", "Crime",
+                          "Drama", "Fantasy", "History",
+                          "Music", "Mystery", "Sci-Fi", "Western")
+
+genre_count_df = genre_count_df %>% 
+  mutate(Action = ActionL) %>% 
+  mutate(Comedy = ComedyL) %>% 
+  mutate(Documentary = DocumentaryL) %>% 
+  mutate(Family = FamilyL) %>% 
+  mutate(Horror = HorrorL) %>% 
+  mutate(Musical = MusicalL) %>% 
+  mutate(Romance = RomanceL) %>% 
+  mutate(Sport = SportL) %>% 
+  mutate(War = WarL) %>% 
+  mutate(Adventure = AdventureL) %>% 
+  mutate(Biography = BiograhyL) %>% 
+  mutate(Crime = CrimeL) %>% 
+  mutate(Drama = DramaL) %>% 
+  mutate(Fantasy = FantasyL) %>% 
+  mutate(History = HistoryL) %>% 
+  mutate(Music = MusicL) %>% 
+  mutate(Mystery = MysteryL) %>% 
+  mutate(SciFi = SciFiL) %>% 
+  mutate(Western = WesternL) %>% 
+  mutate(year = 2000:2015) %>% 
+  gather(genre, number, -year)
+
+write_csv(genre_count_df, "genre_counting.csv")
+
+
+#-------------------------------------------------------------------------------------------------------------
+#box and month
+#-------------------------------------------------------------------------------------------------------------
+imdb_box_month = read_csv("movies_imdb.csv") %>% 
+  mutate(month = str_match(date, "-[0-9]{2}-")) %>% 
+  mutate(month = str_replace_all(month, "-", "")) %>%
+  mutate(month = str_replace(month, "^[0]", "")) %>% 
+  mutate(opening_week = str_match(opening_week, "[0-9]+")) %>% 
+  mutate(opening_week = as.numeric(opening_week)) %>%  na.omit()
+
+averageBoxMonthCalculate = function(mon){
+  imdb_box_month = imdb_box_month %>% 
+    filter(m == month) 
+  total = sum(imdb_box_month$opening_week)
+  average = as.numeric(total / nrow(imdb_box_month))
+  average
+}
+
+average_box_per_month = c()
+for (m in 1:12){
+  average_box_per_month = c(average_box_per_month, averageBoxMonthCalculate(m))
+}
+
+average_box_per_month_df = as.data.frame(matrix(ncol = 2, nrow = 12))
+names(average_box_per_month_df) = c("month", "average")
+average_box_per_month_df = average_box_per_month_df %>% 
+  mutate(month = 1:12) %>% 
+  mutate(average = average_box_per_month)
+
+write_csv(average_box_per_month_df, "average_box_per_month.csv")

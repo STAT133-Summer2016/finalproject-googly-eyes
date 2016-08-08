@@ -2,8 +2,8 @@ name: movies
 account: hrzlvn
 server: shinyapps.io
 appId: 118678
-bundleId: 525893
+bundleId: 526551
 url: https://hrzlvn.shinyapps.io/movies/
-when: 1470558100.2588
+when: 1470650294.01944
 asMultiple: FALSE
 asStatic: FALSE

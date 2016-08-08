@@ -117,7 +117,19 @@ shinyUI(fluidPage(
                              animate = TRUE),
                   plotOutput("graph2")),
         
-        tabPanel("rating user and box", plotOutput("graph3"))
+        tabPanel("rating user and box", plotOutput("graph3")),
+        
+        tabPanel("Genre Trend",
+                 sliderInput("genre_year", 
+                                              label = h3(""), 
+                                              min = 2000, 
+                                              max = 2015, 
+                                              value = 2000, 
+                                              format = "####",
+                                              animate = TRUE),
+                 plotOutput("graph_genre_trend")),
+        
+        tabPanel("Average Opening Week Box for each month", plotOutput("graph_box_month"))
         
         
         )
