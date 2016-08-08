@@ -1,5 +1,3 @@
-#http://shiny.rstudio.com/reference/shiny/latest/renderDataTable.html
-
 library(dplyr)
 library(stringr)
 library(xml2)
@@ -20,7 +18,7 @@ movies_by_director = read.csv("movies_by_director.csv", stringsAsFactors = FALSE
 actors_and_movies = read_csv("actors_and_movies.csv")
 
 shinyServer(function(input, output) {
-
+  
   imdb_display= reactive({
     imdb_dat %>% 
       filter( year >= input$year_range[1] & 
@@ -39,39 +37,72 @@ shinyServer(function(input, output) {
       select(name, rating, director, stars)
   })
   
-movie_by_genre = reactive({
-  imdb_dat %>% 
-  filter( year >= input$year_range[1] & 
-          year <= input$year_range[2] & 
-          str_detect(genres, input$genre) &
-          str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep=""))) %>% 
-  select(name, rating, director, stars, keywords, genres, year, budget, gross, general_rating_user) %>% 
-  mutate(budget = budget %>% as.numeric(),
-         gross = gross %>% as.numeric())
-})
-
-movie_by_genre_for_graphs = reactive({
-  imdb_dat %>% 
-    filter( year >= input$year_range[1] & 
-              year <= input$year_range[2] & 
-              str_detect(genres, input$genre) &
-              input$contentRating == contentRatingLevel) %>% 
-    select(budget, gross) %>% 
-    mutate(budget = budget %>% as.numeric(),
-           gross = gross %>% as.numeric())
-})
-
-
- output$tbl <- renderDataTable({
-   if(input$datasetSelection == "IMDB"){
-     imdb_display() 
-   }
-   else if(input$datasetSelection == "RottenTomatoes"){
-     rt_display()
-   }
- })
- 
-
+  movie_by_genre = reactive({
+    imdb_dat %>% 
+      filter( year >= input$year_range[1] & 
+                year <= input$year_range[2] & 
+                str_detect(genres, input$genre) &
+                str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep=""))) %>% 
+      select(name, rating, director, stars, keywords, genres, year, budget, gross, general_rating_user) %>% 
+      mutate(budget = budget %>% as.numeric(),
+             gross = gross %>% as.numeric())
+  })
+  
+  movie_by_genre_for_graphs = reactive({
+    imdb_dat %>% 
+      filter( year >= input$year_range[1] & 
+                year <= input$year_range[2] & 
+                str_detect(genres, input$genre) &
+                input$contentRating == contentRatingLevel) %>% 
+      select(budget, gross) %>% 
+      mutate(budget = budget %>% as.numeric(),
+             gross = gross %>% as.numeric())
+  })
+  
+  average_box_per_month_dat_reactive = reactive({
+    imdb_box_month = imdb_dat %>% 
+      filter( year >= input$year_range[1] & 
+                year <= input$year_range[2] & 
+                str_detect(genres, input$genre) &
+                str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep=""))) %>% 
+      mutate(month = str_match(date, "-[0-9]{2}-")) %>% 
+      mutate(month = str_replace_all(month, "-", "")) %>%
+      mutate(month = str_replace(month, "^[0]", "")) %>% 
+      mutate(opening_week = str_match(opening_week, "[0-9]+")) %>% 
+      mutate(opening_week = as.numeric(opening_week)) %>%  na.omit()
+    
+    averageBoxMonthCalculate = function(mon){
+      imdb_box_month = imdb_box_month %>% 
+        filter(m == month) 
+      total = sum(imdb_box_month$opening_week)
+      average = as.numeric(total / nrow(imdb_box_month))
+      average
+    }
+    
+    average_box_per_month = c()
+    for (m in 1:12){
+      average_box_per_month = c(average_box_per_month, averageBoxMonthCalculate(m))
+    }
+    
+    average_box_per_month_df = as.data.frame(matrix(ncol = 2, nrow = 12))
+    names(average_box_per_month_df) = c("month", "average")
+    average_box_per_month_df = average_box_per_month_df %>% 
+      mutate(month = 1:12) %>% 
+      mutate(average = average_box_per_month)
+    
+    average_box_per_month_df
+  })
+  
+  output$tbl <- renderDataTable({
+    if(input$datasetSelection == "IMDB"){
+      imdb_display() 
+    }
+    else if(input$datasetSelection == "RottenTomatoes"){
+      rt_display()
+    }
+  })
+  
+  
   output$graph1 = renderPlot({
     movie_by_genre() %>% 
       ggplot() +
@@ -79,7 +110,7 @@ movie_by_genre_for_graphs = reactive({
       geom_point(aes(x=budget, y=gross), color = "blue", alpha = 0.4) +
       scale_x_continuous(limits = c(0,300000000))+
       scale_y_continuous(limits = c(1, 500000000))
-      
+    
   },height = 1000, width = 600)
   
   output$graph2 = renderPlot({
@@ -106,10 +137,10 @@ movie_by_genre_for_graphs = reactive({
       ggplot() +
       geom_point(aes(x = genre, y = number, fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 5) + 
       guides(fill=FALSE) +
-      scale_y_continuous(name = "number of movies",
-                         labels = c("25","50","150"),
-                         breaks = c(25, 50, 150),
-                         limits = c(0, 285))
+      scale_y_continuous(name = "Number of movies",
+                         labels = c("25", "50", "75", "100", "125", "150", "175", "200", "225", "250", "275", "300"),
+                         breaks = c(25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300),
+                         limits = c(0, 300))
   })
     
     movies_by_director %>% 
@@ -139,9 +170,9 @@ movie_by_genre_for_graphs = reactive({
         geom_point(aes(x = month, y = average, fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 6) + 
         #scale_fill_brewer(palette = "Spectral") +
         guides(fill=FALSE) +
-        # scale_y_continuous(name = "Average Gross",  labels = c("7000000","10000000","15000000", "20000000", "25000000"),
-        #                    breaks = c(7000000, 10000000, 15000000, 20000000, 25000000),
-        #                    limits = c(6000000, 28000000)) +
+        scale_y_continuous(name = "Average Gross",  labels = c("40000000", "45000000", "50000000", "80000000", "90000000", "10000000", "135000000"),
+                           breaks = c(40000000, 45000000, 50000000, 80000000, 90000000, 100000000, 135000000),
+                           limits = c(40000000, 131622148)) +
         scale_x_continuous(name = "Month",  labels = c("Jan","Feb","Mar", "Apr", "May", "Jun", "Jul", "Aug",
                                                        "Sep", "Oct", "Nov", "Dec"),
                            breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
@@ -156,14 +187,33 @@ movie_by_genre_for_graphs = reactive({
         geom_point(aes(x = weekday, y = average, fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 6) + 
         #scale_fill_brewer(palette = "Spectral") +
         guides(fill=FALSE) +
-        # scale_y_continuous(name = "Average Gross",  labels = c("7000000","10000000","15000000", "20000000", "25000000"),
-        #                    breaks = c(7000000, 10000000, 15000000, 20000000, 25000000),
-        #                    limits = c(6000000, 28000000)) +
+        scale_y_continuous(name = "Average Gross",  labels = c("40000000", "50000000", "65000000", "80000000", "80000000", "100000000"),
+                           breaks = c(40000000, 50000000, 65000000, 80000000, 80000000, 100000000),
+                           limits = c(40000000, 100622148)) +
         scale_x_continuous(name = "Weekday",  labels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"),
                            breaks = c(1, 2, 3, 4, 5, 6, 7),
                            limits = c(1, 7))
     })
     
-
+  
+  movies_by_director %>% 
+    arrange(desc(mean_gross)) %>% 
+    head(200) %>% 
+    ggvis(~mean_budget, ~mean_gross, size = ~number_of_movies, stroke:= ~director, fill := "blue", fillOpacity:=0.6) %>% 
+    layer_points() %>% 
+    add_tooltip(function(data) {str_c(data$director)}, "hover") %>% 
+    bind_shiny("ggvis1")
+  
+  
+  
+  actors_and_movies %>% 
+    arrange(desc(gross)) %>% 
+    head(300) %>% 
+    ggvis(~budget, ~gross, stroke:= ~actor, fill := "blue", fillOpacity:=0.6) %>% 
+    layer_points() %>% 
+    add_tooltip(function(data) {str_c(data$actor)}, "hover") %>% 
+    bind_shiny("ggvis2")
+  
+  
 })
 
