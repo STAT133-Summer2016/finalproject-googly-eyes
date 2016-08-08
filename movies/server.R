@@ -14,7 +14,8 @@ library(RColorBrewer)
 imdb_dat = read.csv("movies_imdb.csv", stringsAsFactors = FALSE)
 rt_dat = read.csv("movies_rotten.csv", stringsAsFactors = FALSE)
 genre_dat = read.csv("genre_counting.csv")
-average_box_per_month_dat = read.csv("average_box_per_month.csv")
+average_gross_per_month_dat = read.csv("average_gross_per_month.csv")
+average_gross_per_weekday_dat = read.csv("average_gross_per_weekday.csv")
 movies_by_director = read.csv("movies_by_director.csv", stringsAsFactors = FALSE)
 actors_and_movies = read_csv("actors_and_movies.csv")
 
@@ -129,22 +130,38 @@ movie_by_genre_for_graphs = reactive({
       add_tooltip(function(data) {str_c(data$actor)}, "hover") %>% 
       bind_shiny("ggvis2")
     
-    output$graph_box_month = renderPlot({
-      average_box_per_month_dat %>% 
+    output$graph_gross_month = renderPlot({
+      average_gross_per_month_dat %>% 
         mutate(alphabet = c("a", "b", "c", "d",
                             "e", "f", "g", "h",
                             "i", "j", "k", "l")) %>% 
         ggplot() +
         geom_point(aes(x = month, y = average, fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 6) + 
-        scale_fill_brewer(palette = "Spectral") +
+        #scale_fill_brewer(palette = "Spectral") +
         guides(fill=FALSE) +
-        scale_y_continuous(name = "Average Opening Week Box",  labels = c("7000000","10000000","15000000", "20000000", "25000000"),
-                           breaks = c(7000000, 10000000, 15000000, 20000000, 25000000),
-                           limits = c(6000000, 28000000)) +
+        # scale_y_continuous(name = "Average Gross",  labels = c("7000000","10000000","15000000", "20000000", "25000000"),
+        #                    breaks = c(7000000, 10000000, 15000000, 20000000, 25000000),
+        #                    limits = c(6000000, 28000000)) +
         scale_x_continuous(name = "Month",  labels = c("Jan","Feb","Mar", "Apr", "May", "Jun", "Jul", "Aug",
                                                        "Sep", "Oct", "Nov", "Dec"),
                            breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
                            limits = c(1, 12))
+    })
+    
+    output$graph_gross_weekday = renderPlot({
+      average_gross_per_weekday_dat %>% 
+        mutate(alphabet = c("a", "b", "c", "d",
+                            "e", "f", "g")) %>% 
+        ggplot() +
+        geom_point(aes(x = weekday, y = average, fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 6) + 
+        #scale_fill_brewer(palette = "Spectral") +
+        guides(fill=FALSE) +
+        # scale_y_continuous(name = "Average Gross",  labels = c("7000000","10000000","15000000", "20000000", "25000000"),
+        #                    breaks = c(7000000, 10000000, 15000000, 20000000, 25000000),
+        #                    limits = c(6000000, 28000000)) +
+        scale_x_continuous(name = "Weekday",  labels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"),
+                           breaks = c(1, 2, 3, 4, 5, 6, 7),
+                           limits = c(1, 7))
     })
     
 
