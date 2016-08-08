@@ -411,7 +411,7 @@ imdb_box_month = read_csv("movies_imdb.csv") %>%
 averageBoxMonthCalculate = function(mon){
   imdb_box_month = imdb_box_month %>% 
     filter(m == month) 
-  total = sum(imdb_box_month$opening_week)
+  total = sum(as.numeric(imdb_box_month$gross))
   average = as.numeric(total / nrow(imdb_box_month))
   average
 }
@@ -424,7 +424,37 @@ for (m in 1:12){
 average_box_per_month_df = as.data.frame(matrix(ncol = 2, nrow = 12))
 names(average_box_per_month_df) = c("month", "average")
 average_box_per_month_df = average_box_per_month_df %>% 
-  mutate(month = 1:12) %>% 
+  mutate(month = c("Jan","Feb","Mar", "Apr", "May", "Jun", "Jul", "Aug",
+                   "Sep", "Oct", "Nov", "Dec")) %>% 
   mutate(average = average_box_per_month)
 
-write_csv(average_box_per_month_df, "average_box_per_month.csv")
+write_csv(average_box_per_month_df, "average_gross_per_month.csv")
+
+#-------------------------------------------------------------------------------------------------------------
+#box and weekday
+#-------------------------------------------------------------------------------------------------------------
+imdb_box_day = read_csv("movies_imdb.csv") %>% 
+  mutate(weekday = wday(as.Date(as.character(date)))) %>% 
+  mutate(opening_week = str_match(opening_week, "[0-9]+")) %>% 
+  mutate(opening_week = as.numeric(opening_week)) %>%  na.omit()
+
+averageBoxdayCalculate = function(mon){
+  imdb_box_day = imdb_box_day %>% 
+    filter(m == weekday) 
+  total = sum(as.numeric(imdb_box_day$gross))
+  average = as.numeric(total / nrow(imdb_box_day))
+  average
+}
+
+average_box_per_day = c()
+for (m in 1:7){
+  average_box_per_day = c(average_box_per_day, averageBoxdayCalculate(m))
+}
+
+average_box_per_day_df = as.data.frame(matrix(ncol = 2, nrow = 7))
+names(average_box_per_day_df) = c("weekday", "average")
+average_box_per_day_df = average_box_per_day_df %>% 
+  mutate(weekday = 1:7) %>% 
+  mutate(average = average_box_per_day)
+
+write_csv(average_box_per_day_df, "average_gross_per_weekday.csv")

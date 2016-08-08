@@ -130,7 +130,10 @@ shinyUI(fluidPage(
                                               animate = TRUE),
                  plotOutput("graph_genre_trend")),
         
-        tabPanel("Average Opening Week Box for each month", plotOutput("graph_box_month"))
+        tabPanel("Average Gross for Each Month", plotOutput("graph_gross_month")),
+        
+        tabPanel("Average Gross for Each Weekday", plotOutput("graph_gross_weekday"))
+        
         
         
         )

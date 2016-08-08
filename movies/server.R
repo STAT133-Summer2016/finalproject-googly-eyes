@@ -1,5 +1,3 @@
-#http://shiny.rstudio.com/reference/shiny/latest/renderDataTable.html
-
 library(dplyr)
 library(stringr)
 library(xml2)
@@ -15,7 +13,8 @@ library(lubridate)
 imdb_dat = read.csv("movies_imdb.csv", stringsAsFactors = FALSE)
 rt_dat = read.csv("movies_rt.csv", stringsAsFactors = FALSE)
 genre_dat = read.csv("genre_counting.csv")
-average_box_per_month_dat = read.csv("average_box_per_month.csv")
+average_gross_per_month_dat = read.csv("average_gross_per_month.csv")
+average_gross_per_weekday_dat = read.csv("average_gross_per_weekday.csv")
 movies_by_director = read.csv("movies_by_director.csv", stringsAsFactors = FALSE)
 actors_and_movies = read_csv("actors_and_movies.csv")
 
@@ -192,15 +191,69 @@ shinyServer(function(input, output) {
                           "m", "n", "o", "p",
                           "q", "r", "s", "t" )) %>% 
       ggplot() +
-      geom_bar(aes(x = genre, y = portion, fill = alphabet), alpha = 0.8, width = 1) + coord_polar(theta = "y")
-#       scale_y_continuous(name = "number of movies",
-#                          labels = c("25","50","150"),
-#                          breaks = c(25, 50, 150),
-#                          limits = c(0, 1/3))
-#     pie <- ggplot(mtcars, aes(x = factor(1), fill = factor(cyl))) +
-#       geom_bar(width = 1)
-#     pie + coord_polar(theta = "y")
+
+
+      geom_point(aes(x = genre, y = portion, fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 5) + 
+      guides(fill=FALSE) +
+      scale_y_continuous(name = "Number of movies",
+                         labels = c("25", "50", "75", "100", "125", "150", "175", "200", "225", "250", "275", "300"),
+                         breaks = c(25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300),
+                         limits = c(0, 1/3))
+
   })
+    
+    movies_by_director %>% 
+      arrange(desc(mean_gross)) %>% 
+      head(200) %>% 
+      ggvis(~mean_budget, ~mean_gross, size = ~number_of_movies, stroke:= ~director, fill := "blue", fillOpacity:=0.6) %>% 
+      layer_points() %>% 
+      add_tooltip(function(data) {str_c(data$director)}, "hover") %>% 
+      bind_shiny("ggvis1")
+    
+    
+    
+    actors_and_movies %>% 
+      arrange(desc(gross)) %>% 
+      head(300) %>% 
+      ggvis(~budget, ~gross, stroke:= ~actor, fill := "blue", fillOpacity:=0.6) %>% 
+      layer_points() %>% 
+      add_tooltip(function(data) {str_c(data$actor)}, "hover") %>% 
+      bind_shiny("ggvis2")
+    
+    output$graph_gross_month = renderPlot({
+      average_gross_per_month_dat %>% 
+        mutate(alphabet = c("a", "b", "c", "d",
+                            "e", "f", "g", "h",
+                            "i", "j", "k", "l")) %>% 
+        ggplot() +
+        geom_point(aes(x = month, y = average, fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 6) + 
+        #scale_fill_brewer(palette = "Spectral") +
+        guides(fill=FALSE) +
+        scale_y_continuous(name = "Average Gross",  labels = c("40000000", "45000000", "50000000", "80000000", "90000000", "10000000", "135000000"),
+                           breaks = c(40000000, 45000000, 50000000, 80000000, 90000000, 100000000, 135000000),
+                           limits = c(40000000, 131622148)) +
+        scale_x_continuous(name = "Month",  labels = c("Jan","Feb","Mar", "Apr", "May", "Jun", "Jul", "Aug",
+                                                       "Sep", "Oct", "Nov", "Dec"),
+                           breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
+                           limits = c(1, 12))
+    })
+    
+    output$graph_gross_weekday = renderPlot({
+      average_gross_per_weekday_dat %>% 
+        mutate(alphabet = c("a", "b", "c", "d",
+                            "e", "f", "g")) %>% 
+        ggplot() +
+        geom_point(aes(x = weekday, y = average, fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 6) + 
+        #scale_fill_brewer(palette = "Spectral") +
+        guides(fill=FALSE) +
+        scale_y_continuous(name = "Average Gross",  labels = c("40000000", "50000000", "65000000", "80000000", "80000000", "100000000"),
+                           breaks = c(40000000, 50000000, 65000000, 80000000, 80000000, 100000000),
+                           limits = c(40000000, 100622148)) +
+        scale_x_continuous(name = "Weekday",  labels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"),
+                           breaks = c(1, 2, 3, 4, 5, 6, 7),
+                           limits = c(1, 7))
+    })
+    
   
   movies_by_director %>% 
     arrange(desc(mean_gross)) %>% 
@@ -219,24 +272,6 @@ shinyServer(function(input, output) {
     layer_points() %>% 
     add_tooltip(function(data) {str_c(data$actor)}, "hover") %>% 
     bind_shiny("Box_vs_Budget_of_Actors")
-  
-  output$graph_box_month = renderPlot({
-    average_box_per_month_dat_reactive() %>% 
-      mutate(alphabet = c("a", "b", "c", "d",
-                          "e", "f", "g", "h",
-                          "i", "j", "k", "l")) %>% 
-      ggplot() +
-      geom_point(aes(x = month, y = average, fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 6) + 
-      scale_fill_brewer(palette = "Spectral") +
-      guides(fill=FALSE) +
-      scale_y_continuous(name = "Average Opening Week Box",  labels = c("7000000","10000000","15000000", "20000000", "25000000"),
-                         breaks = c(7000000, 10000000, 15000000, 20000000, 25000000),
-                         limits = c(6000000, 28000000)) +
-      scale_x_continuous(name = "Month",  labels = c("Jan","Feb","Mar", "Apr", "May", "Jun", "Jul", "Aug",
-                                                     "Sep", "Oct", "Nov", "Dec"),
-                         breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
-                         limits = c(1, 12))
-  })
   
   
 })
