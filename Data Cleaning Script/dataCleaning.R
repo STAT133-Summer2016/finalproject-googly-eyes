@@ -6,48 +6,48 @@ library(lubridate)
 library(ggplot2)
 
 # Convert gross and budget currency to USD
-# cad_us_rate = read_csv("rates_data_cad.csv")
-# colnames(cad_us_rate) = c("date", "rate", as.character(1:9))
-# cad_us_rate = cad_us_rate %>% 
-#   mutate(date = ymd(date)) %>% 
-#   select(date, rate)
-# 
-# aud_us_rate = read_csv("rates_data_aud.csv")
-# colnames(aud_us_rate) = c("date", "rate", as.character(1:9))
-# aud_us_rate = aud_us_rate %>% 
-#   mutate(date = ymd(date)) %>% 
-#   select(date, rate)
+cad_us_rate = read_csv("../Data/exchange rate/rates_data_cad.csv")
+colnames(cad_us_rate) = c("date", "rate", as.character(1:9))
+cad_us_rate = cad_us_rate %>% 
+  mutate(date = ymd(date)) %>% 
+  select(date, rate)
 
-# CurrencyExchange = function(date, money, currency){
-#   if (currency == "CAD"){
-#     money = str_match(money, "[0-9]+") %>% as.numeric()
-#     for (i in 1:nrow(cad_us_rate)){
-#       if (cad_us_rate[i,1] < date){
-#         return(money / cad_us_rate[i,2])
-#       }
-#     }
-#     NA
-#   }
-#   if (currency == "AUD"){
-#     money = str_match(money, "[0-9]+") %>% as.numeric()
-#     for (i in 1:nrow(aud_us_rate)){
-#       if (aud_us_rate[i,1] < date){
-#         return(money / aud_us_rate[i,2])
-#       }
-#     }
-#     NA
-#   }
-#   if (currency == "DKK"){
-#     return(str_match(money, "[0-9]+") %>% as.numeric() / 6.99181)
-#   }
-#   NA
-# }
+aud_us_rate = read_csv("../Data/exchange rate/rates_data_aud.csv")
+colnames(aud_us_rate) = c("date", "rate", as.character(1:9))
+aud_us_rate = aud_us_rate %>% 
+  mutate(date = ymd(date)) %>% 
+  select(date, rate)
+
+CurrencyExchange = function(date, money, currency){
+  if (currency == "CAD"){
+    money = str_match(money, "[0-9]+") %>% as.numeric()
+    for (i in 1:nrow(cad_us_rate)){
+      if (cad_us_rate[i,1] < date){
+        return(money / cad_us_rate[i,2])
+      }
+    }
+    NA
+  }
+  if (currency == "AUD"){
+    money = str_match(money, "[0-9]+") %>% as.numeric()
+    for (i in 1:nrow(aud_us_rate)){
+      if (aud_us_rate[i,1] < date){
+        return(money / aud_us_rate[i,2])
+      }
+    }
+    NA
+  }
+  if (currency == "DKK"){
+    return(str_match(money, "[0-9]+") %>% as.numeric() / 6.99181)
+  }
+  NA
+}
 
 # Row bind data of each year to a large data set
 years = 2000:2015
 movies_imdb = data.frame()
 for (year in years){
-  df = read_csv(str_c("./moviesData/movies_imdb_", year, ".csv", sep = ""))
+  df = read_csv(str_c("../Data/imdb/movies_imdb_", year, ".csv", sep = ""))
   movies_imdb = rbind(movies_imdb, df)
 }
 
@@ -81,11 +81,11 @@ movies_imdb = movies_imdb %>%
   mutate(budget = ifelse(str_detect(budget, "DKK"), CurrencyExchange(date, budget, "DKK"), as.numeric(budget)))
 
 # Read data from rotten tomatoes
-movies_rt = read_csv("movies_df.csv")
+movies_rt = read_csv("../movies/movies_rotten.csv")
 
 # Write imdb movie data
 write_csv(movies_imdb, "movies_imdb.csv")
-write_csv(movies_imdb, "./movies/movies_imdb.csv")
+write_csv(movies_imdb, "../movies/movies_imdb.csv")
 
 # movies_by_director = movies_imdb %>%
 #   select(director, budget, gross) %>% 
@@ -141,7 +141,7 @@ actors_and_movies %>%
   head(300) %>% 
   ggplot() + 
   geom_point(aes(x=budget, y=gross))
-write_csv(actors_and_movies, "./movies/actors_and_movies.csv")
+write_csv(actors_and_movies, "../movies/actors_and_movies.csv")
 
 # Some test drawing
 all_genres=c("Animation",
@@ -276,7 +276,7 @@ all_genres=c("Animation",
 #-------------------------------------------------------------------------------------------------------------
 
 
-movies_rt = read_csv("movies_df.csv")
+movies_rt = read_csv("./movies_df.csv")
 colnames(movies_rt)[which(names(movies_rt) == "Action & Adventure")] <- "Action"
 colnames(movies_rt)[which(names(movies_rt) == "Kids & Family")] <- "Family"
 colnames(movies_rt)[which(names(movies_rt) == "Musical & Performing Arts")] <- "Musical"
