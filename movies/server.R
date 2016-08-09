@@ -136,7 +136,7 @@ shinyServer(function(input, output) {
     for(genre in all_genres){
       dat = imdb_dat %>% filter(str_detect(genres, genre)) %>% filter(!is.na(budget)) %>% filter(!is.na(gross))
       profit_rates = dat$gross / dat$budget
-      profit_rates = profit_rates[profit_rates<10 & profit_rates>0.1]
+      profit_rates = profit_rates[profit_rates < 10 & profit_rates> 0.1]
       profit_rate = c(profit_rate, sum(profit_rates) / length(profit_rates)) 
       profit_rate_sd = c(profit_rate_sd, sd(profit_rates))
       # profit = bind_rows(profit, data.frame(genre, profit_rates))
@@ -190,14 +190,18 @@ shinyServer(function(input, output) {
     }
   })
   
-  
+  ######################################################################################################
   output$Box_vs_Budget_by_genre = renderPlot({
     movie_by_genre_imdb() %>% 
       ggplot() +
       geom_smooth(aes(x=budget, y=gross), color = "red")+ggtitle(input$genre) +
       geom_point(aes(x=budget, y=gross), color = "blue", alpha = 0.4) +
-      scale_x_continuous(limits = c(0,300000000))+
-      scale_y_continuous(limits = c(1, 500000000))
+      scale_x_continuous(limits = c(0,300000000), 
+                         label = c("100000000", "200000000", "300000000"), 
+                         breaks = c(100000000, 200000000, 300000000 ))+
+      scale_y_continuous(limits = c(1, 500000000), 
+                         label = c("100000000", "200000000", "300000000", "400000000", "500000000"), 
+                         breaks = c(100000000, 200000000, 300000000, 400000000, 500000000))
     
   },height = 1000, width = 600)
   
@@ -335,13 +339,15 @@ shinyServer(function(input, output) {
 
   })
     
-    movies_by_director %>% 
-      arrange(desc(mean_gross)) %>% 
-      head(200) %>% 
-      ggvis(~mean_budget, ~mean_gross, size = ~number_of_movies, stroke:= ~director, fill := "blue", fillOpacity:=0.6) %>% 
-      layer_points() %>% 
-      add_tooltip(function(data) {str_c(data$director)}, "hover") %>% 
-      bind_shiny("ggvis1")
+    # movies_by_director %>% 
+    #   arrange(desc(mean_gross)) %>% 
+    #   head(200) %>% 
+    #   ggvis(~mean_budget, ~mean_gross, size = ~number_of_movies, stroke:= ~director, fill := "blue", fillOpacity:= 0.6) %>% 
+    #   layer_points() %>% 
+    #   add_tooltip(function(data) {paste0("Director: ", data$director, " Averge buget: ", 
+    #                                      as.character(data$mean_budget), " Average gross: ", 
+    #                                      as.character(data$mean_gross))}, "hover") %>% 
+    #   bind_shiny("ggvis1")
     
     
     
@@ -403,10 +409,15 @@ shinyServer(function(input, output) {
   movies_by_director %>% 
     arrange(desc(mean_gross)) %>% 
     head(200) %>% 
-    ggvis(~mean_budget, ~mean_gross, size = ~number_of_movies, stroke:= ~director, fill := "blue", fillOpacity:=0.6) %>% 
+    ggvis(~mean_budget, ~mean_gross, size = ~number_of_movies, stroke:= ~director, key := ~profit_ratio, fill := "blue", fillOpacity:=0.6) %>% 
     layer_points() %>% 
-    add_tooltip(function(data) {str_c(data$director)}, "hover") %>% 
-    
+    add_tooltip(function(data) {str_c("Director: ", data$director, "<br>", "Profit Ratio: ", 
+                                        as.character(data$profit_ratio), "<br>", "Averge buget: ", 
+                                       as.character(data$mean_budget),"<br>", "Average gross: ", 
+                                       as.character(data$mean_gross), "<br>", "Number of movies: ",
+                                      as.character(data$number_of_movies))}, "hover") %>% 
+    scale_numeric("size", range = c(30, 300)) %>% 
+    hide_legend("size") %>% 
     bind_shiny("Box_vs_Budget_of_Directors")
   
   
@@ -414,9 +425,13 @@ shinyServer(function(input, output) {
   actors_and_movies %>% 
     arrange(desc(gross)) %>% 
     head(300) %>% 
-    ggvis(~budget, ~gross, stroke:= ~actor, fill := "blue", fillOpacity:=0.6) %>% 
+    ggvis(~budget, ~gross, stroke:= ~actor, fill := "blue", key := ~profit_ratio, fillOpacity:=0.6) %>% 
     layer_points() %>% 
-    add_tooltip(function(data) {str_c(data$actor)}, "hover") %>% 
+    add_tooltip(function(data) {str_c("Actor/Actress: ", data$actor, "<br>", "Profit Ratio: ", 
+                                      as.character(data$profit_ratio), "<br>", "Averge buget: ", 
+                                      as.character(data$budget),"<br>", "Average gross: ", 
+                                      as.character(data$gross) )}, "hover") %>% 
+    scale_numeric("size", range = c(0,5)) %>% 
     bind_shiny("Box_vs_Budget_of_Actors")
   
   

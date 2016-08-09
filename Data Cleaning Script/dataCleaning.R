@@ -353,3 +353,19 @@ average_box_per_day_df = average_box_per_day_df %>%
   mutate(average = average_box_per_day)
 
 write_csv(average_box_per_day_df, "average_gross_per_weekday.csv")
+
+#-------------------------------------------------------------------------------------------------------------
+# calculation profit_ration
+#-------------------------------------------------------------------------------------------------------------
+imdb_dat_dir = read_csv("../movies/Data/movies_by_director.csv") %>% 
+  mutate(profit_ratio = mean_gross / mean_budget) %>% 
+  filter(profit_ratio != "NA" & profit_ratio != "NaN" & profit_ratio != "Inf")
+write_csv(imdb_dat_dir, "../Data/movies_by_director.csv")
+write_csv(imdb_dat_dir, "../movies/Data/movies_by_director.csv")
+
+imdb_dat_act = read_csv("../movies/Data/actors_and_movies.csv") %>% 
+  mutate(profit_ratio = gross / budget) %>% 
+  filter(profit_ratio != "NA" & profit_ratio != "NaN" & profit_ratio != "Inf")
+write_csv(imdb_dat_act, "../Data/actors_and_movies.csv")
+write_csv(imdb_dat_act, "../movies/Data/actors_and_movies.csv")
+
