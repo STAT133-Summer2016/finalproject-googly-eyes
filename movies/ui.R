@@ -122,9 +122,15 @@ shinyUI(fluidPage(
                              animate = TRUE),
                   plotOutput("Rating_vs_Users_by_Genre")),
         
-        tabPanel("Box vs Rating Users", plotOutput("Box_vs_Rating_Users")),
+        tabPanel("Box vs Rating Users_1", plotOutput("Box_vs_Rating_Users_1")),
         
-        tabPanel("Box_vs_MetaScore", plotOutput("Box_vs_MetaScore")),
+        tabPanel("Box vs Rating Users_2", plotOutput("Box_vs_Rating_Users_2")),
+        
+        tabPanel("Box_vs_MetaScore 1", plotOutput("Box_vs_MetaScore_1")),
+        
+        tabPanel("Box_vs_MetaScore 2", plotOutput("Box_vs_MetaScore_2")),
+        
+        tabPanel("Box_vs_MetaScore 3", plotOutput("Box_vs_MetaScore_3")),
         
         tabPanel("Box_vs_Review_Users_metacritiics", plotOutput("Box_vs_Review_Users")),
         
