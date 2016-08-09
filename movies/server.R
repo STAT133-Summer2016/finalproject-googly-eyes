@@ -10,7 +10,8 @@ library(ggplot2)
 library(RColorBrewer)
 library(lubridate)
 
-imdb_dat = read.csv("./Data/movies_imdb.csv", stringsAsFactors = FALSE)
+imdb_dat = read.csv("./Data/movies_imdb.csv", stringsAsFactors = FALSE) %>% 
+  mutate(profit_rate = gross / budget)
 rt_dat = read.csv("./Data/movies_rt.csv", stringsAsFactors = FALSE)
 genre_dat = read.csv("./Data/genre_counting.csv")
 average_gross_per_month_dat = read.csv("./Data/average_gross_per_month.csv")
@@ -223,16 +224,84 @@ shinyServer(function(input, output) {
     
   })
   
-  output$Box_vs_Rating_Users = renderPlot({
-    movie_by_genre_imdb() %>% 
-      ggplot() +
-      geom_point(aes(x = log10(general_rating_user), y = log10(gross)))
+  output$Box_vs_Rating_Users_1 = renderPlot({
+    dat = movie_by_genre_imdb() %>% 
+      mutate(general_rating_user_level = general_rating_user %/% 70000) %>% 
+      filter(budget < 25000000) %>% 
+      filter(gross > 5.347390e+02) %>% 
+      filter(gross < 1.350719e+08) %>% 
+      filter(general_rating_user > 11) %>% 
+      filter(general_rating_user < 433936) %>% 
+      filter(!is.na(general_rating_user_level)) 
+    ggplot(dat) +
+      # geom_point(aes(x = general_rating_user, y = gross))
+      geom_boxplot(aes(x = factor(general_rating_user_level), y = gross))
   })
-  output$Box_vs_MetaScore = renderPlot({
-    movie_by_genre_imdb() %>% 
-      ggplot() +
-      geom_point(aes(x = budget, y = gross, size = metaScore), color = "blue")
+  
+  output$Box_vs_Rating_Users_2 = renderPlot({
+    dat = movie_by_genre_imdb() %>% 
+      mutate(general_rating_user_level = general_rating_user %/% 100000) %>% 
+      filter(gross > 35923) %>% 
+      filter(gross < 517559275) %>%
+      filter(general_rating_user > 3897) %>% 
+      filter(general_rating_user < 914204) %>%
+      filter(!is.na(general_rating_user_level)) %>%
+      filter(budget > 25000000)
+    ggplot(dat) +
+      # geom_point(aes(x = general_rating_user, y = gross))
+      geom_boxplot(aes(x = factor(general_rating_user_level), y = gross))
   })
+  
+  output$Box_vs_MetaScore_1 = renderPlot({
+    movie_by_genre_imdb() %>% 
+      mutate(metaScoreLevel = metaScore %/% 20) %>% 
+      filter(!is.na(metaScoreLevel)) %>%
+      filter(budget > 50000000) %>% 
+      ggplot() +
+      geom_point(aes(x = metaScore, y = gross))
+  })
+  
+  output$Box_vs_MetaScore_1 = renderPlot({
+    movie_by_genre_imdb() %>% 
+      mutate(metaScoreLevel = metaScore %/% 20) %>% 
+      filter(!is.na(metaScoreLevel)) %>%
+      filter(budget > 50000000) %>% 
+      ggplot() +
+      geom_point(aes(x = metaScore, y = gross))
+  })
+  
+  output$Box_vs_MetaScore_2 = renderPlot({
+    dat = movie_by_genre_imdb() %>% 
+      mutate(metaScoreLevel = metaScore %/% 15) %>% 
+      filter(budget < 25000000) %>% 
+      filter(gross > 5.347390e+02) %>% 
+      filter(gross < 1.350719e+08) %>% 
+      filter(general_rating_user > 11) %>% 
+      filter(general_rating_user < 433936) %>%  
+      filter(!is.na(metaScoreLevel))
+    # lr = lm(dat$gross ~ dat$metaScore)
+    # R 0.002426
+    ggplot(dat) +
+      geom_boxplot(aes(x = factor(metaScoreLevel), y = gross), varwidth=TRUE)
+      # geom_abline(intercept = lr$coefficients[1], slope = lr$coefficients[2])
+  })
+  
+  output$Box_vs_MetaScore_3 = renderPlot({
+    dat = movie_by_genre_imdb() %>% 
+      filter(gross > 35923) %>% 
+      filter(gross < 517559275) %>%
+      filter(general_rating_user > 3897) %>% 
+      filter(general_rating_user < 914204) %>%
+      mutate(metaScoreLevel = metaScore %/% 15) %>%
+      filter(!is.na(metaScoreLevel)) %>%
+      filter(budget > 25000000)
+    # lr = lm(dat$gross ~ dat$metaScore)
+    # R-squared 0.1687
+    ggplot(dat) +
+      geom_boxplot(aes(x = factor(metaScoreLevel), y = gross), varwidth=TRUE)
+      # geom_abline(intercept = lr$coefficients[1], slope = lr$coefficients[2])
+  })
+  
   output$Box_vs_Review_Users = renderPlot({
     movie_by_genre_imdb() %>% 
       ggplot() +
