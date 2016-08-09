@@ -295,7 +295,7 @@ shinyServer(function(input, output) {
         guides(fill=FALSE) +
         scale_y_continuous(name = "Average Gross",  labels = c("40000000", "45000000", "50000000", "80000000", "90000000", "10000000", "135000000"),
                            breaks = c(30000000, 45000000, 50000000, 80000000, 90000000, 100000000, 135000000),
-                           limits = c(30000000, 131622148)) +
+                           limits = c(0000000, 131622148)) +
         scale_x_continuous(name = "Month",  labels = c("Jan","Feb","Mar", "Apr", "May", "Jun", "Jul", "Aug",
                                                        "Sep", "Oct", "Nov", "Dec"),
                            breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
