@@ -24,7 +24,7 @@ all_genres=c("Animation",
 
 shinyUI(fluidPage(
   theme = "bootstrap.css",
-  titlePanel("Movies Query"),
+  titlePanel("How to produce the most profitable movie"),
   em("by Guanghongfu, Wenjun Zeng, Rongzhao Huang, Bian Yin"),
   br(),
   br(),
