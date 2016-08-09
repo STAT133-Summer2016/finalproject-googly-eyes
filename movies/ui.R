@@ -100,9 +100,13 @@ shinyUI(fluidPage(
                                              "Rotten Tomatoes" = "RottenTomatoes"),
                               selected = "IMDB"),
                  dataTableOutput("tbl")),
+        
         tabPanel("Box vs Budget by genre", plotOutput("Box_vs_Budget_by_genre")),
+        
         tabPanel("Box vs Budget of Directors", ggvisOutput("Box_vs_Budget_of_Directors")),
+        
         tabPanel("Box vs Budget of Actors", ggvisOutput("Box_vs_Budget_of_Actors")),
+        
         tabPanel("Rating vs Users by Genre", 
                  radioButtons("datasetSelection_rug", 
                               label = h3("Select Dataset"),
@@ -119,9 +123,13 @@ shinyUI(fluidPage(
                   plotOutput("Rating_vs_Users_by_Genre")),
         
         tabPanel("Box vs Rating Users", plotOutput("Box_vs_Rating_Users")),
+        
         tabPanel("Box_vs_MetaScore", plotOutput("Box_vs_MetaScore")),
+        
         tabPanel("Box_vs_Review_Users_metacritiics", plotOutput("Box_vs_Review_Users")),
+        
         tabPanel("Box_vs_Review_Critics", plotOutput("Box_vs_Review_Critics")),
+        
         tabPanel("Profit vs Genre", plotOutput("Profit_vs_genre")),
         
         tabPanel("Genre Trend Number",
@@ -133,6 +141,7 @@ shinyUI(fluidPage(
                                               format = "####",
                                               animate = TRUE),
                  plotOutput("genre_trend_number")),
+        
         tabPanel("Genre Trend profit",
                  sliderInput("genre_year", 
                              label = h3(""), 

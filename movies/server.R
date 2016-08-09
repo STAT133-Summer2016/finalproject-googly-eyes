@@ -248,7 +248,7 @@ shinyServer(function(input, output) {
     genre_dat %>% 
       filter(year == input$genre_year) %>% 
       group_by(year) %>% 
-      mutate(portion = number / sum(number, na.rm = T)) %>% 
+      # mutate(portion = number / sum(number, na.rm = T)) %>% 
       mutate(alphabet = c("a", "b", "c", "d",
                           "e", "f", "g", "h",
                           "i", "j", "k", "l",
@@ -257,12 +257,12 @@ shinyServer(function(input, output) {
       ggplot() +
 
 
-      geom_point(aes(x = genre, y = portion, fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 5) + 
+      geom_point(aes(x = genre, y = number , fill = alphabet), shape = 21, colour = "black", alpha = 0.8, size = 5) + 
       guides(fill=FALSE) +
       scale_y_continuous(name = "Number of movies",
                          labels = c("25", "50", "75", "100", "125", "150", "175", "200", "225", "250", "275", "300"),
                          breaks = c(25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300),
-                         limits = c(0, 1/3))
+                         limits = c(0, 310))
 
   })
     
@@ -294,8 +294,8 @@ shinyServer(function(input, output) {
         #scale_fill_brewer(palette = "Spectral") +
         guides(fill=FALSE) +
         scale_y_continuous(name = "Average Gross",  labels = c("40000000", "45000000", "50000000", "80000000", "90000000", "10000000", "135000000"),
-                           breaks = c(40000000, 45000000, 50000000, 80000000, 90000000, 100000000, 135000000),
-                           limits = c(40000000, 131622148)) +
+                           breaks = c(30000000, 45000000, 50000000, 80000000, 90000000, 100000000, 135000000),
+                           limits = c(30000000, 131622148)) +
         scale_x_continuous(name = "Month",  labels = c("Jan","Feb","Mar", "Apr", "May", "Jun", "Jul", "Aug",
                                                        "Sep", "Oct", "Nov", "Dec"),
                            breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
