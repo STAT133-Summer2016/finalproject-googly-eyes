@@ -665,7 +665,7 @@ shinyServer(function(input, output) {
     ggvis(~budget/1000000, ~gross/1000000, size = ~num, stroke:= ~actor, fill := "blue", fillOpacity:=0.6) %>% 
     layer_points() %>% 
     add_tooltip(function(data) {str_c("Actor/Actress: ", data$actor, "<br>", "Profit Ratio: ", 
-                                      as.character((data$budget / data$gross) %>% round(2)), "<br>", "Averge budget(Millions): ", 
+                                      as.character((data$gross/ data$budget) %>% round(2)), "<br>", "Averge budget(Millions): ", 
                                       as.character(data$budget %>% round(2)),"<br>", "Average gross(Millions): ", 
                                       as.character(data$gross %>% round(2)) )}, "hover") %>% 
     scale_numeric("size", range = c(30, 300)) %>% 
