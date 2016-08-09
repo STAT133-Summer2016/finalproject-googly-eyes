@@ -101,36 +101,29 @@ shinyUI(fluidPage(
                               selected = "IMDB"),
                  dataTableOutput("tbl")),
         
-        tabPanel("Box vs Budget by genre", plotOutput("Box_vs_Budget_by_genre")),
+        tabPanel("Box vs Budget by genre", 
+                 textOutput("movie_by_genre_regression_line_helper"),
+                 textOutput("movie_by_genre_regression_line"), 
+                 textOutput("movie_by_genre_regression_line_r"),
+                 plotOutput("Box_vs_Budget_by_genre")),
+        
+        tabPanel("Most frequnt keywords", plotOutput("Most_Frequent_Key_Words")),
         
         tabPanel("Box vs Budget of Directors", ggvisOutput("Box_vs_Budget_of_Directors")),
         
         tabPanel("Box vs Budget of Actors", ggvisOutput("Box_vs_Budget_of_Actors")),
+
+        tabPanel("Box vs Rating Numbers Low Budget Movies", textOutput("box_vs_ratingNum_lb_regression_line"), plotOutput("Box_vs_Rating_Users_1")),
         
-        tabPanel("Rating vs Users by Genre", 
-                 radioButtons("datasetSelection_rug", 
-                              label = h3("Select Dataset"),
-                              choices = list("IMDB" = "IMDB",
-                                             "Rotten Tomatoes" = "RottenTomatoes"),
-                              selected = "IMDB"),
-                 sliderInput("year_for_graph2", 
-                             label = h3(""), 
-                             min = 2000, 
-                             max = 2015, 
-                             value = 2000, 
-                             format = "####",
-                             animate = TRUE),
-                  plotOutput("Rating_vs_Users_by_Genre")),
+        tabPanel("Box vs Rating Numbers", textOutput("box_vs_ratingNum_hb_regression_line"), plotOutput("Box_vs_Rating_Users_2")),
         
-        tabPanel("Box vs Rating Users_1", plotOutput("Box_vs_Rating_Users_1")),
+        tabPanel("Box vs IMDB Rating Low Budget", textOutput("box_vs_rating_lb_regression_line"), plotOutput("Box_vs_Rating_1")),
+
+        tabPanel("Box vs IMDB Rating", textOutput("box_vs_rating_hb_regression_line"), plotOutput("Box_vs_Rating_2")),
         
-        tabPanel("Box vs Rating Users_2", plotOutput("Box_vs_Rating_Users_2")),
+        tabPanel("Box vs Meta Score Low Budget", textOutput("box_vs_metaScore_lb_regression_line"), plotOutput("Box_vs_MetaScore_1")),
         
-        tabPanel("Box_vs_MetaScore 1", plotOutput("Box_vs_MetaScore_1")),
-        
-        tabPanel("Box_vs_MetaScore 2", plotOutput("Box_vs_MetaScore_2")),
-        
-        tabPanel("Box_vs_MetaScore 3", plotOutput("Box_vs_MetaScore_3")),
+        tabPanel("Box vs Meta Score", textOutput("box_vs_metaScore_hb_regression_line"), plotOutput("Box_vs_MetaScore_2")),
         
         tabPanel("Box_vs_Review_Users_metacritiics", plotOutput("Box_vs_Review_Users")),
         
@@ -140,29 +133,17 @@ shinyUI(fluidPage(
         
         tabPanel("Genre Trend Number",
                  sliderInput("genre_year", 
-                                              label = h3(""), 
-                                              min = 2000, 
-                                              max = 2015, 
-                                              value = 2000, 
-                                              format = "####",
-                                              animate = TRUE),
+                                label = h3(""), 
+                                min = 2000, 
+                                max = 2015, 
+                                value = 2000, 
+                                format = "####",
+                                animate = TRUE),
                  plotOutput("genre_trend_number")),
-        
-        tabPanel("Genre Trend profit",
-                 sliderInput("genre_year", 
-                             label = h3(""), 
-                             min = 2000, 
-                             max = 2015, 
-                             value = 2000, 
-                             format = "####",
-                             animate = TRUE),
-                 plotOutput("genre_trend_profit")),
         
         tabPanel("Average Gross for Each Month", plotOutput("graph_gross_month")),
         
         tabPanel("Average Gross for Each Weekday", plotOutput("graph_gross_weekday"))
-        
-        
         
         )
       )

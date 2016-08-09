@@ -41,7 +41,11 @@ shinyServer(function(input, output) {
   })
   
   movie_by_genre_imdb = reactive({
-    imdb_dat %>% 
+    imdb_dat %>%
+      filter(gross > 9.059220e+02 &
+               gross < 4.061834e+08 &
+               budget > 1000 &
+               budget < 229115000 ) %>% 
       filter( year >= input$year_range[1] & 
                 year <= input$year_range[2] & 
                 str_detect(genres, input$genre) &
@@ -90,46 +94,28 @@ shinyServer(function(input, output) {
       filter( year >= input$year_range[1] & 
                 year <= input$year_range[2] & 
                 str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep="")))
-    all_genres=c("Animation",
-                 "Comedy",
-                 "Documentary",
-                 "Family",
-                 "Horror",
-                 "Musical",
-                 "Romance",
-                 "Sport",
-                 "War",
-                 "Adventure",
-                 "Biography",
-                 "Crime",
-                 "Drama",
-                 "Fantasy",
-                 "History",
-                 "Music",
-                 "Mystery",
-                 "Sci-Fi",
-                 "Thriller",
-                 "Western")
-    order=c("jAnimation",
-             "dComedy",
-             "aDocumentary",
-             "gFamily",
-             "fHorror",
-             "iMusical",
-             "eRomance",
-             "kSport",
-             "sWar",
-             "nAdventure",
-             "cBiography",
-             "pCrime",
-             "hDrama",
-             "mFantasy",
-             "rHistory",
-             "bMusic",
-             "lMystery",
-             "qSci-Fi",
-             "oThriller",
-             "tWestern")
+
+    all_genres = c("Action",
+                  "Animation", 
+                  "Comedy",
+                  "Documentary",
+                  "Family",
+                  "Horror",
+                  "Musical",
+                  "Romance",
+                  "Sport",
+                  "War",
+                  "Adventure",
+                  "Biography",
+                  "Crime",
+                  "Drama",
+                  "Fantasy",
+                  "History",
+                  "Music",
+                  "Mystery",
+                  "Sci-Fi",
+                  "Thriller",
+                  "Western")
     num = c()
     profit_rate = c()
     profit_rate_sd = c()
@@ -139,11 +125,8 @@ shinyServer(function(input, output) {
       profit_rates = profit_rates[profit_rates<10 & profit_rates>0.1]
       profit_rate = c(profit_rate, sum(profit_rates) / length(profit_rates)) 
       profit_rate_sd = c(profit_rate_sd, sd(profit_rates))
-      # profit = bind_rows(profit, data.frame(genre, profit_rates))
     }
-    
-    profit = data.frame(all_genres, profit_rate, profit_rate_sd, order)
-
+    profit = data.frame(all_genres, profit_rate, profit_rate_sd)
   })
   
   average_box_per_month_dat_reactive = reactive({
@@ -189,37 +172,93 @@ shinyServer(function(input, output) {
       rt_display()
     }
   })
-  
+  output$Most_Frequent_Key_Words = renderPlot({
+    words = movie_by_genre_imdb() %>% .$keywords %>% str_split(",") %>% unlist() %>% str_replace_all("-", " ")
+    top_words = sort(table(words),decreasing=TRUE)[1:10]   %>% data.frame() 
+    top_words$words <- factor(top_words$words, levels = top_words$words[order(top_words$Freq)])
+    ggplot(top_words, aes(x = words, y = Freq)) + theme_bw() + geom_bar(stat = "identity", fill = "blue", alpha = 0.6) +
+      labs(title = "Most Frequnt Key Words")+
+      theme(title = element_text(size = 16)) +
+      theme(axis.text.x = element_text(size=12),
+            axis.text.y = element_text(size=12)) +
+      theme(axis.title.x = element_text(size=15),
+            axis.title.y = element_text(size=15)) 
+      
+  })
   
   output$Box_vs_Budget_by_genre = renderPlot({
+    qtg = movie_by_genre_imdb() %>% .$gross %>% quantile(c(0.003, 0.997), na.rm = T)
+    qtb = movie_by_genre_imdb() %>% .$budget %>% quantile(c(0.003, 0.997), na.rm = T)
     movie_by_genre_imdb() %>% 
+      filter(gross > qtg[1] & gross < qtg[2]) %>% 
+      filter(budget > qtb[1] & budget < qtb[2]) %>% 
       ggplot() +
-      geom_smooth(aes(x=budget, y=gross), color = "red")+ggtitle(input$genre) +
+      geom_smooth(aes(x=budget, y=gross), color = "red")+ggtitle(ifelse(input$genre == "[a-zA-Z]", "All Genres", input$genre)) +
       geom_point(aes(x=budget, y=gross), color = "blue", alpha = 0.4) +
-      scale_x_continuous(limits = c(0,300000000))+
-      scale_y_continuous(limits = c(1, 500000000))
+      scale_x_continuous(limits = c(0, 250000000), 
+                         labels = c("0", "50", "100", "150", "200", "250"),
+                         name = "Budget (Millions)",
+                         breaks = seq(0, 250000000, 50000000)) +
+      scale_y_continuous(limits = c(0, 450000000),
+                         labels = c("0", "50", "100", "150", "200", "250", "300", "350", "400", "450"),
+                         breaks = seq(0, 450000000, 50000000),
+                         name = "Gross (Millions)") 
     
-  },height = 1000, width = 600)
+  }, height = 800, width = 440)
+  
+  output$movie_by_genre_regression_line_helper = renderText({
+    "Regression Line:\n"
+  })
+  output$movie_by_genre_regression_line = renderText({
+    dat = movie_by_genre_imdb() 
+    lr = lm(dat$gross~dat$budget)
+    if (lr$coefficients[1] > 0){
+      str_c("Gross = ", 
+            lr$coefficients[2] %>% round(4) %>% as.character(), 
+            " * Budget + ", 
+            lr$coefficients[1] %>% round(0) %>% as.character(), 
+            "\n")
+    }else{
+      str_c("Gross = ", 
+            lr$coefficients[2] %>% round(4) %>% as.character(), 
+            " * Budget - ", 
+            lr$coefficients[1] %>% abs() %>% round(0) %>% as.character(), 
+            "\n")
+    }
+    
+  })
+  output$movie_by_genre_regression_line_r = renderText({
+    dat = movie_by_genre_imdb() 
+    lr = lm(dat$gross~dat$budget)
+    str_c( "R-squared: ", 
+          lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+  })
   
   selec = reactive({input$datasetSelection})
   
-  output$Rating_vs_Users_by_Genre = renderPlot({
-    # input$datasetSelection_rug
-    if(input$datasetSelection_rug == "IMDB"){
-      movie_by_genre_imdb() %>%
-        mutate(reviews = general_rating_user %/% 150000 ) %>% 
-        filter(reviews <= 3) %>% 
-        # filter(year == input$year_for_graph2) %>% 
-        ggplot()+
-        geom_boxplot(aes(x=factor(reviews), y = rating))
-    }
-    else if(input$datasetSelection_rug == "RottenTomatoes"){
-      movie_by_genre_rt() %>% 
-        mutate(reviews = Reviews_count %/% 80 ) %>% 
-        filter(reviews <= 3) %>% 
-        # filter(year == input$year_for_graph2) %>% 
-        ggplot()+
-        geom_boxplot(aes(x=factor(reviews), y = Tomato_meter))
+
+  output$box_vs_ratingNum_lb_regression_line = renderText({
+    dat = movie_by_genre_imdb() %>% 
+      filter(budget < 25000000) %>% 
+      filter(gross > 5.347390e+02) %>% 
+      filter(gross < 1.350719e+08) %>% 
+      filter(general_rating_user > 11) %>% 
+      filter(general_rating_user < 433936)
+    lr = lm(dat$gross~dat$general_rating_user)
+    if (lr$coefficients[1] > 0){
+      str_c("Gross = ", 
+            (lr$coefficients[2]  / 1000) %>% round(4) %>% as.character(), 
+            " * NumberOfReviews + ", 
+            lr$coefficients[1] %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }else{
+      str_c("Gross = ", 
+            (lr$coefficients[2]  / 1000) %>% round(4) %>% as.character(), 
+            " * NumberOfReviews - ", 
+            lr$coefficients[1] %>% abs() %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
     }
     
   })
@@ -235,12 +274,49 @@ shinyServer(function(input, output) {
       filter(!is.na(general_rating_user_level)) 
     ggplot(dat) +
       # geom_point(aes(x = general_rating_user, y = gross))
-      geom_boxplot(aes(x = factor(general_rating_user_level), y = gross))
+      geom_boxplot(aes(x = factor(general_rating_user_level), y = gross), varwidth = T) +
+      scale_x_discrete(labels = c("0-70", "70-140", "140-210", "210-280", "280-350", "350-420", "420+"),
+                       name = "Number of Ratings on IMDB (Thousands)") +
+      scale_y_continuous(breaks = c(0, 50000000, 100000000),
+                         labels = c("0", "50", "100"),
+                         name = "Gross (Millions)")+
+      labs(title = "Gross vs Number of Ratings")+
+      theme(title = element_text(size = 16)) +
+      theme(axis.text.x = element_text(size=12),
+            axis.text.y = element_text(size=12)) +
+      theme(axis.title.x = element_text(size=15),
+            axis.title.y = element_text(size=15)) 
+  })
+  
+  output$box_vs_ratingNum_hb_regression_line = renderText({
+    dat = movie_by_genre_imdb() %>% 
+      filter(budget > 25000000) %>% 
+      filter(gross > 35923) %>% 
+      filter(gross < 517559275) %>%
+      filter(general_rating_user > 3897) %>% 
+      filter(general_rating_user < 914204)
+    lr = lm(dat$gross~dat$general_rating_user)
+    if (lr$coefficients[1] > 0){
+      str_c("Gross = ", 
+            (lr$coefficients[2] / 1000) %>% round(4) %>% as.character(), 
+            " * NumberOfReviews + ", 
+            lr$coefficients[1] %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }else{
+      str_c("Gross = ", 
+            (lr$coefficients[2] / 10000) %>% round(4) %>% as.character(), 
+            " * NumberOfReviews - ", 
+            lr$coefficients[1] %>% abs() %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }
+    
   })
   
   output$Box_vs_Rating_Users_2 = renderPlot({
     dat = movie_by_genre_imdb() %>% 
-      mutate(general_rating_user_level = general_rating_user %/% 100000) %>% 
+      mutate(general_rating_user_level = general_rating_user %/% 131000) %>% 
       filter(gross > 35923) %>% 
       filter(gross < 517559275) %>%
       filter(general_rating_user > 3897) %>% 
@@ -249,57 +325,205 @@ shinyServer(function(input, output) {
       filter(budget > 25000000)
     ggplot(dat) +
       # geom_point(aes(x = general_rating_user, y = gross))
-      geom_boxplot(aes(x = factor(general_rating_user_level), y = gross))
+      geom_boxplot(aes(x = factor(general_rating_user_level), y = gross), varwidth = T) +
+      scale_x_discrete(labels = c("0-130", "130-260", "260-390", "390-520", "520-650", "650-780", "780+"),
+                       name = "Number of Ratings on IMDB (Thousands)") +
+      scale_y_continuous(name = "Gross (Millions)",
+                         labels = c("0", "100", "200", "300", "400"))+
+      labs(title = "Gross vs Number of Ratings")+
+    theme(title = element_text(size = 16)) +
+      theme(axis.text.x = element_text(size=12),
+            axis.text.y = element_text(size=12)) +
+      theme(axis.title.x = element_text(size=15),
+            axis.title.y = element_text(size=15)) 
   })
+  
+  
+  output$box_vs_rating_lb_regression_line = renderText({
+    dat = movie_by_genre_imdb() %>% 
+      filter(budget < 25000000) %>% 
+      filter(gross > 5.347390e+02) %>% 
+      filter(gross < 1.350719e+08)
+    lr = lm(dat$gross~dat$rating)
+    if (lr$coefficients[1] > 0){
+      str_c("Gross = ", 
+            (lr$coefficients[2]  / 1000000) %>% round(4) %>% as.character(), 
+            " * Rating + ", 
+            lr$coefficients[1] %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }else{
+      str_c("Gross = ", 
+            (lr$coefficients[2]  / 1000000) %>% round(4) %>% as.character(), 
+            " * Rating - ", 
+            lr$coefficients[1] %>% abs() %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }
+    
+  })
+  
+  output$Box_vs_Rating_1 = renderPlot({
+    dat = movie_by_genre_imdb() %>% 
+      mutate(rating_level = rating %/% 1) %>% 
+      filter(budget < 25000000) %>% 
+      filter(gross > 5.347390e+02) %>% 
+      filter(gross < 1.350719e+08) %>% 
+      filter(!is.na(rating_level)) 
+    ggplot(dat) +
+      # geom_point(aes(x = general_rating_user, y = gross))
+      geom_boxplot(aes(x = factor(rating_level), y = gross), varwidth = T) +
+      scale_x_discrete(
+                       name = "Ratings on IMDB (Out of Ten)") +
+      scale_y_continuous(breaks = c(0, 50000000, 100000000),
+                         labels = c("0", "50", "100"),
+                         name = "Gross (Millions)")+
+      labs(title = "Gross vs Rating")+
+    theme(title = element_text(size = 16)) +
+      theme(axis.text.x = element_text(size=12),
+            axis.text.y = element_text(size=12)) +
+      theme(axis.title.x = element_text(size=15),
+            axis.title.y = element_text(size=15)) 
+  })
+  
+  output$box_vs_rating_hb_regression_line = renderText({
+    dat = movie_by_genre_imdb() %>% 
+      filter(budget > 25000000) %>% 
+      filter(gross > 35923) %>% 
+      filter(gross < 517559275)
+      lr = lm(dat$gross~dat$rating)
+    if (lr$coefficients[1] > 0){
+      str_c("Gross = ", 
+            (lr$coefficients[2]  / 1000000) %>% round(4) %>% as.character(), 
+            " * Rating + ", 
+            lr$coefficients[1] %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }else{
+      str_c("Gross = ", 
+            (lr$coefficients[2] / 1000000) %>% round(4) %>% as.character(), 
+            " * Rating - ", 
+            lr$coefficients[1] %>% abs() %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }
+    
+  })
+  
+  output$Box_vs_Rating_2 = renderPlot({
+    dat = movie_by_genre_imdb() %>% 
+      mutate(rating_level = rating %/% 1) %>% 
+      filter(budget > 25000000) %>% 
+      filter(gross > 35923) %>% 
+      filter(gross < 517559275) %>%
+      filter(!is.na(rating_level)) 
+    ggplot(dat) +
+      # geom_point(aes(x = general_rating_user, y = gross))
+      geom_boxplot(aes(x = factor(rating_level), y = gross), varwidth = T) +
+      scale_x_discrete(
+        name = "Ratings on IMDB (Out of Ten)") +
+      scale_y_continuous(
+        # breaks = c(0, 50000000, 100000000),
+                         labels = c("0", "100", "200", "300", "400"),
+                         name = "Gross (Millions)")+
+      labs(title = "Gross vs Rating")+
+      theme(title = element_text(size = 16)) +
+      theme(axis.text.x = element_text(size=12),
+            axis.text.y = element_text(size=12)) +
+      theme(axis.title.x = element_text(size=15),
+            axis.title.y = element_text(size=15)) 
+  })
+  
+  
+  output$box_vs_metaScore_lb_regression_line = renderText({
+    dat = movie_by_genre_imdb() %>% 
+      filter(budget < 25000000) %>% 
+      filter(gross > 5.347390e+02) %>% 
+      filter(gross < 1.350719e+08)
+    lr = lm(dat$gross~dat$metaScore)
+    if (lr$coefficients[1] > 0){
+      str_c("Gross = ", 
+            (lr$coefficients[2]  / 1000000) %>% round(4) %>% as.character(), 
+            " * Rating + ", 
+            lr$coefficients[1] %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }else{
+      str_c("Gross = ", 
+            (lr$coefficients[2]  / 1000000) %>% round(4) %>% as.character(), 
+            " * Rating - ", 
+            lr$coefficients[1] %>% abs() %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }
+    
+  })
+  
   
   output$Box_vs_MetaScore_1 = renderPlot({
-    movie_by_genre_imdb() %>% 
-      mutate(metaScoreLevel = metaScore %/% 20) %>% 
-      filter(!is.na(metaScoreLevel)) %>%
-      filter(budget > 50000000) %>% 
-      ggplot() +
-      geom_point(aes(x = metaScore, y = gross))
-  })
-  
-  output$Box_vs_MetaScore_1 = renderPlot({
-    movie_by_genre_imdb() %>% 
-      mutate(metaScoreLevel = metaScore %/% 20) %>% 
-      filter(!is.na(metaScoreLevel)) %>%
-      filter(budget > 50000000) %>% 
-      ggplot() +
-      geom_point(aes(x = metaScore, y = gross))
-  })
-  
-  output$Box_vs_MetaScore_2 = renderPlot({
     dat = movie_by_genre_imdb() %>% 
       mutate(metaScoreLevel = metaScore %/% 15) %>% 
       filter(budget < 25000000) %>% 
       filter(gross > 5.347390e+02) %>% 
       filter(gross < 1.350719e+08) %>% 
-      filter(general_rating_user > 11) %>% 
-      filter(general_rating_user < 433936) %>%  
       filter(!is.na(metaScoreLevel))
-    # lr = lm(dat$gross ~ dat$metaScore)
-    # R 0.002426
     ggplot(dat) +
-      geom_boxplot(aes(x = factor(metaScoreLevel), y = gross), varwidth=TRUE)
-      # geom_abline(intercept = lr$coefficients[1], slope = lr$coefficients[2])
+      geom_boxplot(aes(x = factor(metaScoreLevel), y = gross), varwidth=TRUE)+
+      scale_x_discrete(name = "Meta Score", 
+                         labels = c("0-15", "15-30", "30-45", "45-60", "60-75", "75-90", "90+"))+
+      scale_y_continuous(name = "Gross (Million)",
+                         breaks = c(0, 50000000, 100000000),
+                         labels = c("0", "50", "100")
+                         )+
+      labs(title = "Gross vs Meta Score")+
+      theme(title = element_text(size = 16)) +
+      theme(axis.text.x = element_text(size=12),
+            axis.text.y = element_text(size=12)) +
+      theme(axis.title.x = element_text(size=15),
+            axis.title.y = element_text(size=15)) 
   })
-  
-  output$Box_vs_MetaScore_3 = renderPlot({
+  output$box_vs_metaScore_hb_regression_line = renderText({
     dat = movie_by_genre_imdb() %>% 
+      filter(budget > 25000000) %>% 
+      filter(gross > 35923) %>% 
+      filter(gross < 517559275)
+    lr = lm(dat$gross~dat$metaScore)
+    if (lr$coefficients[1] > 0){
+      str_c("Gross = ", 
+            (lr$coefficients[2]  / 1000000) %>% round(4) %>% as.character(), 
+            " * Rating + ", 
+            lr$coefficients[1] %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }else{
+      str_c("Gross = ", 
+            (lr$coefficients[2]  / 1000000) %>% round(4) %>% as.character(), 
+            " * Rating - ", 
+            lr$coefficients[1] %>% abs() %>% round(0) %>% as.character(), 
+            ", R-squared = ",
+            lr %>% summary() %>% .[8] %>% as.numeric() %>% round(4))
+    }
+    
+  })
+  output$Box_vs_MetaScore_2 = renderPlot({
+    dat = movie_by_genre_imdb() %>% 
+      mutate(metaScoreLevel = metaScore %/% 15) %>%
       filter(gross > 35923) %>% 
       filter(gross < 517559275) %>%
-      filter(general_rating_user > 3897) %>% 
-      filter(general_rating_user < 914204) %>%
-      mutate(metaScoreLevel = metaScore %/% 15) %>%
-      filter(!is.na(metaScoreLevel)) %>%
-      filter(budget > 25000000)
-    # lr = lm(dat$gross ~ dat$metaScore)
-    # R-squared 0.1687
+      filter(!is.na(metaScoreLevel))
     ggplot(dat) +
-      geom_boxplot(aes(x = factor(metaScoreLevel), y = gross), varwidth=TRUE)
-      # geom_abline(intercept = lr$coefficients[1], slope = lr$coefficients[2])
+      geom_boxplot(aes(x = factor(metaScoreLevel), y = gross), varwidth=TRUE)+
+      scale_x_discrete(name = "Meta Score", 
+                       labels = c("0-15", "15-30", "30-45", "45-60", "60-75", "75-90", "90+"))+
+      scale_y_continuous(name = "Gross (Million)",
+                         labels = c("0", "100", "200", "300", "400")
+                         )+
+    labs(title = "Gross vs Meta Score")+
+      theme(title = element_text(size = 16)) +
+      theme(axis.text.x = element_text(size=12),
+            axis.text.y = element_text(size=12)) +
+      theme(axis.title.x = element_text(size=15),
+            axis.title.y = element_text(size=15)) 
   })
   
   output$Box_vs_Review_Users = renderPlot({
@@ -389,14 +613,15 @@ shinyServer(function(input, output) {
     
     output$Profit_vs_genre = renderPlot({
       average_profit_by_genre() %>%
-        # bind_cols(c())
-        # filter(profit_rates<5 & profit_rates>0.2) %>% 
         ggplot() +
-        geom_point(aes(x = order, y = profit_rate), size = profit_rate_sd) +
-        scale_x_discrete(labels = c("Doc", "Music", "Bio", "Comedy", "Romance", "Horror",
-                                    "Family", "Drama", "Musical", "Ani", "Sport", "Mys", "Fant", "Adv",
-                                    "Thril", "Crime", "Sci-Fi", "His", "War", "Western")) +
-        scale_size_continuous(guide=FALSE, range=c(200,10000))
+        geom_point(aes(x = all_genres, y = profit_rate, size = profit_rate_sd)) +
+        scale_x_discrete(
+#           labels = c("Doc", "Music", "Bio", "Comedy", "Romance", "Horror",
+#                                     "Family", "Drama", "Musical", "Ani", "Sport", "Mys", "Fant", "Adv",
+#                                     "Thril", "Crime", "Sci-Fi", "His", "War", "Western")
+          ) +
+        scale_size_continuous(guide=FALSE, range=c(1,10))
+      
     })
     
   
@@ -406,7 +631,6 @@ shinyServer(function(input, output) {
     ggvis(~mean_budget, ~mean_gross, size = ~number_of_movies, stroke:= ~director, fill := "blue", fillOpacity:=0.6) %>% 
     layer_points() %>% 
     add_tooltip(function(data) {str_c(data$director)}, "hover") %>% 
-    
     bind_shiny("Box_vs_Budget_of_Directors")
   
   
@@ -414,7 +638,7 @@ shinyServer(function(input, output) {
   actors_and_movies %>% 
     arrange(desc(gross)) %>% 
     head(300) %>% 
-    ggvis(~budget, ~gross, stroke:= ~actor, fill := "blue", fillOpacity:=0.6) %>% 
+    ggvis(~budget, ~gross, size = ~num, stroke:= ~actor, fill := "blue", fillOpacity:=0.6) %>% 
     layer_points() %>% 
     add_tooltip(function(data) {str_c(data$actor)}, "hover") %>% 
     bind_shiny("Box_vs_Budget_of_Actors")

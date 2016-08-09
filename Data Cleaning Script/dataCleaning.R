@@ -120,7 +120,7 @@ a = movies_imdb$stars %>%
   unique()
 a=a[!is.na(a)]
 a=a[str_detect(a, " ")]
-actors_and_movies = data.frame(matrix(NA, nrow = 0, ncol = 3))
+actors_and_movies = data.frame(matrix(NA, nrow = 0, ncol = 4))
 names(actors_and_movies) <- c("actor", "gross", "budget")
 
 temp_actor <- movies_imdb %>%
@@ -128,42 +128,25 @@ temp_actor <- movies_imdb %>%
 
 for(i in 1 : length(a)) {
   temp <- temp_actor %>%
-    filter(str_detect(stars, a[i]))
+    filter(str_detect(stars, a[i])) %>% 
+    filter(!is.na(gross)) %>% 
+    filter(!is.na(budget))
   actors_and_movies <- rbind(actors_and_movies, 
                                 data.frame(actor = a[i], 
                                            gross = sum(temp$gross, 
                                                        na.rm = T), 
                                            budget = sum(temp$budget,
-                                                        na.rm = T)))
+                                                        na.rm = T),
+                                           num = nrow(temp)))
 }
 actors_and_movies %>% 
+  mutate(gross = gross / num) %>% 
+  mutate(budget = gross / num) %>% 
   arrange(desc(gross)) %>% 
   head(300) %>% 
   ggplot() + 
   geom_point(aes(x=budget, y=gross))
-write_csv(actors_and_movies, "../movies/actors_and_movies.csv")
-
-# Some test drawing
-all_genres=c("Animation",
-          "Comedy",
-          "Documentary",
-          "Family",
-          "Horror",
-          "Musical",
-          "Romance",
-          "Sport",
-          "War",
-          "Adventure",
-          "Biography",
-          "Crime",
-          "Drama",
-          "Fantasy",
-          "History",
-          "Music",
-          "Mystery",
-          "Sci-Fi",
-          "Thriller",
-          "Western")
+write_csv(actors_and_movies, "../movies/Data/actors_and_movies.csv")
 
 
 #-------------------------------------------------------------------------------------------------------------
