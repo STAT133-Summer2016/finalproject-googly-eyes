@@ -10,13 +10,13 @@ library(ggplot2)
 library(RColorBrewer)
 library(lubridate)
 
-imdb_dat = read.csv("movies_imdb.csv", stringsAsFactors = FALSE)
-rt_dat = read.csv("movies_rt.csv", stringsAsFactors = FALSE)
-genre_dat = read.csv("genre_counting.csv")
-average_gross_per_month_dat = read.csv("average_gross_per_month.csv")
-average_gross_per_weekday_dat = read.csv("average_gross_per_weekday.csv")
-movies_by_director = read.csv("movies_by_director.csv", stringsAsFactors = FALSE)
-actors_and_movies = read_csv("actors_and_movies.csv")
+imdb_dat = read.csv("./Data/movies_imdb.csv", stringsAsFactors = FALSE)
+rt_dat = read.csv("./Data/movies_rt.csv", stringsAsFactors = FALSE)
+genre_dat = read.csv("./Data/genre_counting.csv")
+average_gross_per_month_dat = read.csv("./Data/average_gross_per_month.csv")
+average_gross_per_weekday_dat = read.csv("./Data/average_gross_per_weekday.csv")
+movies_by_director = read.csv("./Data/movies_by_director.csv", stringsAsFactors = FALSE)
+actors_and_movies = read_csv("./Data/actors_and_movies.csv")
 
 shinyServer(function(input, output) {
   
@@ -35,8 +35,7 @@ shinyServer(function(input, output) {
       filter( year >= input$year_range[1] & 
                 year <= input$year_range[2] & 
                 str_detect(genres, input$genre) &
-                str_detect(Classification, str_c("^", input$contentRating, "$", sep=""))) %>% 
-      mutate(name = Title, rating = Tomato_meter, director = Directed_by, stars = Cast) %>% 
+                str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep=""))) %>% 
       select(name, rating, director, stars)
   })
   
@@ -141,10 +140,11 @@ shinyServer(function(input, output) {
       profit_rate_sd = c(profit_rate_sd, sd(profit_rates))
       # profit = bind_rows(profit, data.frame(genre, profit_rates))
     }
+    
     profit = data.frame(all_genres, profit_rate, profit_rate_sd, order)
 
-    
   })
+  
   average_box_per_month_dat_reactive = reactive({
     imdb_box_month = imdb_dat %>% 
       filter( year >= input$year_range[1] & 

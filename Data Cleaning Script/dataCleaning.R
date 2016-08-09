@@ -276,7 +276,7 @@ all_genres=c("Animation",
 #-------------------------------------------------------------------------------------------------------------
 
 
-movies_rt = read_csv("./movies_df.csv")
+movies_rt = read_csv("../Data/movies_original_rt.csv")
 colnames(movies_rt)[which(names(movies_rt) == "Action & Adventure")] <- "Action"
 colnames(movies_rt)[which(names(movies_rt) == "Kids & Family")] <- "Family"
 colnames(movies_rt)[which(names(movies_rt) == "Musical & Performing Arts")] <- "Musical"
@@ -324,7 +324,7 @@ movies_rt = mutate(movies_rt, genres = ifelse(Western == TRUE, str_c(genres, ",W
 movies_rt = mutate(movies_rt, genres = ifelse(SciFi == TRUE, str_c(genres, ",Sci-Fi"), genres)) 
 movies_rt = mutate(movies_rt, genres = str_replace_all(genres, "default,", ""))
 # movies_rt = mutate(movies_rt, genres = str_split(genres, ","))
-write_csv(movies_rt, "movies_rotten.csv")
+write_csv(movies_rt, "../Data/movies_rt.csv")
 View(movies_rt)
 
 
