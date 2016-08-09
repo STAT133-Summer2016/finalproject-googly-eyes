@@ -27,7 +27,7 @@ shinyServer(function(input, output) {
                 year <= input$year_range[2] & 
                 str_detect(genres, input$genre) &
                 str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep=""))) %>% 
-      select(name, rating, director, stars, keywords)
+      select(name, rating, users = general_rating_user, metaScore, director, stars, genres, budget, gross,  keywords)
   })
   
   rt_display= reactive({
@@ -96,17 +96,17 @@ shinyServer(function(input, output) {
                 str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep="")))
 
     all_genres = c("Action",
-                  "Animation", 
+                  "Anim", 
                   "Comedy",
-                  "Documentary",
+                  "Doc",
                   "Family",
                   "Horror",
                   "Musical",
-                  "Romance",
+                  "Roman",
                   "Sport",
                   "War",
-                  "Adventure",
-                  "Biography",
+                  "Adv",
+                  "Bio",
                   "Crime",
                   "Drama",
                   "Fantasy",
@@ -279,7 +279,7 @@ shinyServer(function(input, output) {
       filter(!is.na(general_rating_user_level)) 
     ggplot(dat) +
       # geom_point(aes(x = general_rating_user, y = gross))
-      geom_boxplot(aes(x = factor(general_rating_user_level), y = gross), varwidth = T) +
+      geom_boxplot(aes(x = factor(general_rating_user_level), y = gross), varwidth = T, color = "blue", alpha = 0.8) +
       scale_x_discrete(labels = c("0-70", "70-140", "140-210", "210-280", "280-350", "350-420", "420+"),
                        name = "Number of Ratings on IMDB (Thousands)") +
       scale_y_continuous(breaks = c(0, 50000000, 100000000),
@@ -330,7 +330,7 @@ shinyServer(function(input, output) {
       filter(budget > 25000000)
     ggplot(dat) +
       # geom_point(aes(x = general_rating_user, y = gross))
-      geom_boxplot(aes(x = factor(general_rating_user_level), y = gross), varwidth = T) +
+      geom_boxplot(aes(x = factor(general_rating_user_level), y = gross), varwidth = T, color = "blue", alpha = 0.8) +
       scale_x_discrete(labels = c("0-130", "130-260", "260-390", "390-520", "520-650", "650-780", "780+"),
                        name = "Number of Ratings on IMDB (Thousands)") +
       scale_y_continuous(name = "Gross (Millions)",
@@ -377,7 +377,7 @@ shinyServer(function(input, output) {
       filter(!is.na(rating_level)) 
     ggplot(dat) +
       # geom_point(aes(x = general_rating_user, y = gross))
-      geom_boxplot(aes(x = factor(rating_level), y = gross), varwidth = T) +
+      geom_boxplot(aes(x = factor(rating_level), y = gross), varwidth = T, color = "blue", alpha = 0.8) +
       scale_x_discrete(
                        name = "Ratings on IMDB (Out of Ten)") +
       scale_y_continuous(breaks = c(0, 50000000, 100000000),
@@ -424,7 +424,7 @@ shinyServer(function(input, output) {
       filter(!is.na(rating_level)) 
     ggplot(dat) +
       # geom_point(aes(x = general_rating_user, y = gross))
-      geom_boxplot(aes(x = factor(rating_level), y = gross), varwidth = T) +
+      geom_boxplot(aes(x = factor(rating_level), y = gross), varwidth = T, color = "blue", alpha = 0.8) +
       scale_x_discrete(
         name = "Ratings on IMDB (Out of Ten)") +
       scale_y_continuous(
@@ -473,7 +473,7 @@ shinyServer(function(input, output) {
       filter(gross < 1.350719e+08) %>% 
       filter(!is.na(metaScoreLevel))
     ggplot(dat) +
-      geom_boxplot(aes(x = factor(metaScoreLevel), y = gross), varwidth=TRUE)+
+      geom_boxplot(aes(x = factor(metaScoreLevel), y = gross), varwidth=TRUE, color = "blue", alpha = 0.8)+
       scale_x_discrete(name = "Meta Score", 
                          labels = c("0-15", "15-30", "30-45", "45-60", "60-75", "75-90", "90+"))+
       scale_y_continuous(name = "Gross (Million)",
@@ -517,7 +517,7 @@ shinyServer(function(input, output) {
       filter(gross < 517559275) %>%
       filter(!is.na(metaScoreLevel))
     ggplot(dat) +
-      geom_boxplot(aes(x = factor(metaScoreLevel), y = gross), varwidth=TRUE)+
+      geom_boxplot(aes(x = factor(metaScoreLevel), y = gross), varwidth=TRUE, color = "blue", alpha =0.8)+
       scale_x_discrete(name = "Meta Score", 
                        labels = c("0-15", "15-30", "30-45", "45-60", "60-75", "75-90", "90+"))+
       scale_y_continuous(name = "Gross (Million)",
@@ -619,15 +619,24 @@ shinyServer(function(input, output) {
     })
     
     output$Profit_vs_genre = renderPlot({
-      average_profit_by_genre() %>%
-        ggplot() +
+      dat = average_profit_by_genre() 
+        dat$all_genres <- factor(dat$all_genres, levels = dat$all_genres[order(dat$profit_rate)])
+        ggplot(dat) +
         geom_point(aes(x = all_genres, y = profit_rate, size = profit_rate_sd)) +
         scale_x_discrete(
 #           labels = c("Doc", "Music", "Bio", "Comedy", "Romance", "Horror",
 #                                     "Family", "Drama", "Musical", "Ani", "Sport", "Mys", "Fant", "Adv",
 #                                     "Thril", "Crime", "Sci-Fi", "His", "War", "Western")
           ) +
-        scale_size_continuous(guide=FALSE, range=c(1,10))
+        scale_size_continuous(guide=FALSE, range=c(1,10)) +
+        scale_x_discrete(name = "Genres")+
+        scale_y_continuous(name = "Average Profit Rate")+
+        labs(title = "Average Profit Rate vs Genres")+
+        theme(title = element_text(size = 16)) +
+        theme(axis.text.x = element_text(size=12),
+              axis.text.y = element_text(size=12)) +
+        theme(axis.title.x = element_text(size=15),
+              axis.title.y = element_text(size=15)) 
       
     })
     
