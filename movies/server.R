@@ -46,7 +46,7 @@ shinyServer(function(input, output) {
                 year <= input$year_range[2] & 
                 str_detect(genres, input$genre) &
                 str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep=""))) %>% 
-      select(name, rating, director, stars, keywords, genres, year, budget, gross, general_rating_user) %>% 
+      # select(name, rating, director, stars, keywords, genres, year, budget, gross, general_rating_user) %>% 
       mutate(budget = budget %>% as.numeric(),
              gross = gross %>% as.numeric())
   })
@@ -85,17 +85,66 @@ shinyServer(function(input, output) {
   })
 
     
-#   movie_by_genre_for_graphs = reactive({
-#     imdb_dat %>% 
-#       filter( year >= input$year_range[1] & 
-#                 year <= input$year_range[2] & 
-#                 str_detect(genres, input$genre) &
-#                 input$contentRating == contentRatingLevel) %>% 
-#       select(budget, gross) %>% 
-#       mutate(budget = budget %>% as.numeric(),
-#              gross = gross %>% as.numeric())
-#   })
-  
+  average_profit_by_genre = reactive({
+    imdb_dat %>% 
+      filter( year >= input$year_range[1] & 
+                year <= input$year_range[2] & 
+                str_detect(contentRatingLevel, str_c("^", input$contentRating, "$", sep="")))
+    all_genres=c("Animation",
+                 "Comedy",
+                 "Documentary",
+                 "Family",
+                 "Horror",
+                 "Musical",
+                 "Romance",
+                 "Sport",
+                 "War",
+                 "Adventure",
+                 "Biography",
+                 "Crime",
+                 "Drama",
+                 "Fantasy",
+                 "History",
+                 "Music",
+                 "Mystery",
+                 "Sci-Fi",
+                 "Thriller",
+                 "Western")
+    order=c("jAnimation",
+             "dComedy",
+             "aDocumentary",
+             "gFamily",
+             "fHorror",
+             "iMusical",
+             "eRomance",
+             "kSport",
+             "sWar",
+             "nAdventure",
+             "cBiography",
+             "pCrime",
+             "hDrama",
+             "mFantasy",
+             "rHistory",
+             "bMusic",
+             "lMystery",
+             "qSci-Fi",
+             "oThriller",
+             "tWestern")
+    num = c()
+    profit_rate = c()
+    profit_rate_sd = c()
+    for(genre in all_genres){
+      dat = imdb_dat %>% filter(str_detect(genres, genre)) %>% filter(!is.na(budget)) %>% filter(!is.na(gross))
+      profit_rates = dat$gross / dat$budget
+      profit_rates = profit_rates[profit_rates<10 & profit_rates>0.1]
+      profit_rate = c(profit_rate, sum(profit_rates) / length(profit_rates)) 
+      profit_rate_sd = c(profit_rate_sd, sd(profit_rates))
+      # profit = bind_rows(profit, data.frame(genre, profit_rates))
+    }
+    profit = data.frame(all_genres, profit_rate, profit_rate_sd, order)
+
+    
+  })
   average_box_per_month_dat_reactive = reactive({
     imdb_box_month = imdb_dat %>% 
       filter( year >= input$year_range[1] & 
@@ -177,10 +226,25 @@ shinyServer(function(input, output) {
   output$Box_vs_Rating_Users = renderPlot({
     movie_by_genre_imdb() %>% 
       ggplot() +
-      geom_point(aes(x = general_rating_user, y = gross))
+      geom_point(aes(x = log10(general_rating_user), y = log10(gross)))
+  })
+  output$Box_vs_MetaScore = renderPlot({
+    movie_by_genre_imdb() %>% 
+      ggplot() +
+      geom_point(aes(x = budget, y = gross, size = metaScore), color = "blue")
+  })
+  output$Box_vs_Review_Users = renderPlot({
+    movie_by_genre_imdb() %>% 
+      ggplot() +
+      geom_point(aes(x = review_users, y = gross))
+  })
+  output$Box_vs_Review_Critics = renderPlot({
+    movie_by_genre_imdb() %>% 
+      ggplot() +
+      geom_point(aes(x = review_critcs, y = gross))
   })
   
-  output$graph_genre_trend = renderPlot({
+  output$genre_trend_number = renderPlot({
     genre_dat %>% 
       filter(year == input$genre_year) %>% 
       group_by(year) %>% 
@@ -254,6 +318,18 @@ shinyServer(function(input, output) {
                            limits = c(1, 7))
     })
     
+    output$Profit_vs_genre = renderPlot({
+      average_profit_by_genre() %>%
+        # bind_cols(c())
+        # filter(profit_rates<5 & profit_rates>0.2) %>% 
+        ggplot() +
+        geom_point(aes(x = order, y = profit_rate), size = profit_rate_sd) +
+        scale_x_discrete(labels = c("Doc", "Music", "Bio", "Comedy", "Romance", "Horror",
+                                    "Family", "Drama", "Musical", "Ani", "Sport", "Mys", "Fant", "Adv",
+                                    "Thril", "Crime", "Sci-Fi", "His", "War", "Western")) +
+        scale_size_continuous(guide=FALSE, range=c(200,10000))
+    })
+    
   
   movies_by_director %>% 
     arrange(desc(mean_gross)) %>% 
@@ -261,6 +337,7 @@ shinyServer(function(input, output) {
     ggvis(~mean_budget, ~mean_gross, size = ~number_of_movies, stroke:= ~director, fill := "blue", fillOpacity:=0.6) %>% 
     layer_points() %>% 
     add_tooltip(function(data) {str_c(data$director)}, "hover") %>% 
+    
     bind_shiny("Box_vs_Budget_of_Directors")
   
   

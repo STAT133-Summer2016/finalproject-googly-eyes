@@ -119,8 +119,12 @@ shinyUI(fluidPage(
                   plotOutput("Rating_vs_Users_by_Genre")),
         
         tabPanel("Box vs Rating Users", plotOutput("Box_vs_Rating_Users")),
+        tabPanel("Box_vs_MetaScore", plotOutput("Box_vs_MetaScore")),
+        tabPanel("Box_vs_Review_Users_metacritiics", plotOutput("Box_vs_Review_Users")),
+        tabPanel("Box_vs_Review_Critics", plotOutput("Box_vs_Review_Critics")),
+        tabPanel("Profit vs Genre", plotOutput("Profit_vs_genre")),
         
-        tabPanel("Genre Trend",
+        tabPanel("Genre Trend Number",
                  sliderInput("genre_year", 
                                               label = h3(""), 
                                               min = 2000, 
@@ -128,7 +132,16 @@ shinyUI(fluidPage(
                                               value = 2000, 
                                               format = "####",
                                               animate = TRUE),
-                 plotOutput("graph_genre_trend")),
+                 plotOutput("genre_trend_number")),
+        tabPanel("Genre Trend profit",
+                 sliderInput("genre_year", 
+                             label = h3(""), 
+                             min = 2000, 
+                             max = 2015, 
+                             value = 2000, 
+                             format = "####",
+                             animate = TRUE),
+                 plotOutput("genre_trend_profit")),
         
         tabPanel("Average Gross for Each Month", plotOutput("graph_gross_month")),
         
