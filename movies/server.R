@@ -215,7 +215,7 @@ shinyServer(function(input, output) {
     "Regression Line:\n"
   })
   output$movie_by_genre_regression_line = renderText({
-    dat = movie_by_genre_imdb() 
+    dat = movie_by_genre_imdb()
     lr = lm(dat$gross~dat$budget)
     if (lr$coefficients[1] > 0){
       str_c("Gross = ", 
@@ -285,7 +285,7 @@ shinyServer(function(input, output) {
       scale_y_continuous(breaks = c(0, 50000000, 100000000),
                          labels = c("0", "50", "100"),
                          name = "Gross (Millions)")+
-      labs(title = "Gross vs Number of Ratings")+
+      labs(title = "Gross vs Number of Ratings, Low Budge")+
       theme(title = element_text(size = 16)) +
       theme(axis.text.x = element_text(size=12),
             axis.text.y = element_text(size=12)) +
@@ -383,7 +383,7 @@ shinyServer(function(input, output) {
       scale_y_continuous(breaks = c(0, 50000000, 100000000),
                          labels = c("0", "50", "100"),
                          name = "Gross (Millions)")+
-      labs(title = "Gross vs Rating")+
+      labs(title = "Gross vs Rating, Low Budget Movies")+
     theme(title = element_text(size = 16)) +
       theme(axis.text.x = element_text(size=12),
             axis.text.y = element_text(size=12)) +
@@ -534,7 +534,10 @@ shinyServer(function(input, output) {
   output$Box_vs_Review_Users = renderPlot({
     movie_by_genre_imdb() %>% 
       ggplot() +
-      geom_point(aes(x = review_users, y = gross))
+      geom_point(aes(x = general_rating_user, y = gross)) + 
+      scale_x_continuous(name = "Users")+
+      scale_y_continuous(name = "Gross")+
+      labs(title = "Gross vs Users")
   })
   output$Box_vs_Review_Critics = renderPlot({
     movie_by_genre_imdb() %>% 
