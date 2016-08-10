@@ -1,0 +1,4 @@
+This project discusses what factors affect the box office of the movie industry. The data we collected is from rottentomatoes, imdb, and douban. From the data we are able to draw graph about budget versus gross for different genres, times, directors and actor/actresses. As bonus, we also draw diagrams about the ratings of movies on imdb and rottentomatoes. 
+
+Finally we made a shiny app that consists of all the data we’ve collected and all the graph we’ve drew. Our shiny app is very obvious and easy to use. The following is the link to our shiny app”
+(https://hrzlvn.shinyapps.io/movies/)
