@@ -87,33 +87,8 @@ movies_rt = read_csv("../movies/movies_rotten.csv")
 write_csv(movies_imdb, "movies_imdb.csv")
 write_csv(movies_imdb, "../movies/movies_imdb.csv")
 
-# movies_by_director = movies_imdb %>%
-#   select(director, budget, gross) %>% 
-#   mutate(director = as.character(director)) %>% 
-#   mutate(temp = 1) %>% 
-#   group_by(director) %>% 
-#   summarise(mean_gross = mean(gross, na.rm = T),
-#             mean_budget = mean(budget, na.rm = T),
-#             number_of_movies = sum(temp))
-# write_csv(movies_by_director, "movies_by_director.csv")
-# 
-# # ggplot(movies_by_director) + geom_smooth(aes(x=mean_budget, y=mean_gross, size=number_of_movies))
-# 
-# d = movies_imdb$director %>% 
-#   str_split(",") %>% 
-#   unlist() %>% 
-#   unique()
-# d=d[!is.na(d)]
-# 
-# director_and_movie = data.frame(matrix(d, nrow = length(d), ncol = 1)) %>% 
-#   mutate(mean_gross = 0) %>% 
-#   mutate(mean_budget = 0) %>% 
-#   mutate(num = 0)
-# colnames(director_and_movie) = c("director", "mean_gross", "mean_budget", "num")
-# 
-# n = unique(movies_imdb$name)
-# ndf = matrix(n, nrow = length(n), ncol = 1) %>% data.frame()
-# colnames(ndf) = c("name")
+# Get the actor/actress data
+
 a = movies_imdb$stars %>% 
   str_split(",") %>% 
   unlist() %>% 
@@ -178,7 +153,7 @@ movies_rt = movies_rt %>%
   mutate(contentRatingLevel = str_replace_all(contentRatingLevel, "\\(.*\\)", "")) %>% 
   mutate(contentRatingLevel = str_replace_all(contentRatingLevel, " $", "")) %>% 
   mutate(genres = "default") %>% 
-  mutate(name = str_replace_all(name, "�", "")) %>% 
+  mutate(name = str_replace_all(name, "???", "")) %>% 
   mutate(name = str_replace_all(name, ":", ""))
 
 #collapse genre boolean column into single column containing a single vector
