@@ -1,0 +1,8 @@
+In douban folder contains links to movie pages on imdb from doubt each year
+In exchange_rate folder contain the date and the exchange rate of USD to some currency on that date
+In imdv folder contains movie data of following variables, each folder is a year.
+[1] "name"                "ratingValue"         "date"                "director"            "stars"              
+[6] "metaScore"           "review_users"        "review_critcs"       "popularity"          "keywords"           
+[11] "genres"              "contentRating"       "country"             "language"            "budget"             
+[16] "opening_week"        "gross"               "runtime"             "color"               "asp"                
+[21] "rating"              "general_rating_user" "contentRatingLevel"  "year"                "profit_ratio"
